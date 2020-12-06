@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-
+from django.contrib.auth.models import User
 from base import mods
 from base.models import Auth, Key
 
@@ -29,12 +29,12 @@ class QuestionOption(models.Model):
 
 class Candidatura(models.Model):
     nombre = models.TextField()
-    delegadoCentro = models.ForeignKey(User, on_delete=models.CASCADE)
-    representanteDelegadoPrimero = models.ForeignKey(User, on_delete=models.CASCADE)
-    representanteDelegadoSegundo = models.ForeignKey(User, on_delete=models.CASCADE)
-    representanteDelegadoTercero = models.ForeignKey(User, on_delete=models.CASCADE)
-    representanteDelegadoCuarto = models.ForeignKey(User, on_delete=models.CASCADE)
-    representanteDelegadoMaster = models.ForeignKey(User, on_delete=models.CASCADE)
+    delegadoCentro = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='delegado_centro')
+    representanteDelegadoPrimero = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_primero')
+    representanteDelegadoSegundo = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_segundo')
+    representanteDelegadoTercero = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_tercero')
+    representanteDelegadoCuarto = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_cuarto')
+    representanteDelegadoMaster = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_master')
 
     def __str__(self):
         return self.nombre
