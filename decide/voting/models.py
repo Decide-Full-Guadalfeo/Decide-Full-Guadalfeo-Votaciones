@@ -27,6 +27,18 @@ class QuestionOption(models.Model):
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
 
+class Candidatura(models.Model):
+    nombre = models.TextField()
+    delegadoCentro = models.ForeignKey(User, on_delete=models.CASCADE)
+    representanteDelegadoPrimero = models.ForeignKey(User, on_delete=models.CASCADE)
+    representanteDelegadoSegundo = models.ForeignKey(User, on_delete=models.CASCADE)
+    representanteDelegadoTercero = models.ForeignKey(User, on_delete=models.CASCADE)
+    representanteDelegadoCuarto = models.ForeignKey(User, on_delete=models.CASCADE)
+    representanteDelegadoMaster = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.nombre
+
 
 class Voting(models.Model):
     name = models.CharField(max_length=200)
