@@ -71,6 +71,9 @@ class Voting(models.Model):
         if(self.tipo=='PV'):
             if(self.candiancy == None):
                 raise ValidationError('Primary votings must have a candidancy')
+        if(self.tipo=='GV'):
+            if(self.candiancy!=None):
+                raise ValidationError('General votings must not have a candidancy')
 
 
     def create_pubkey(self):
