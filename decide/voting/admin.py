@@ -4,7 +4,7 @@ from django.utils import timezone
 from .models import QuestionOption
 from .models import Question
 from .models import Voting
-
+from .models import Candidatura
 from .filters import StartedFilter
 
 
@@ -48,3 +48,4 @@ class VotingAdmin(admin.ModelAdmin):
 
 admin.site.register(Voting, VotingAdmin)
 admin.site.register(Question, QuestionAdmin)
+admin.site.register(Candidatura)
