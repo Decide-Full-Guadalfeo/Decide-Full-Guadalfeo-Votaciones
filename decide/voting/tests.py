@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
+from django.db.utils import IntegrityError
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
 
@@ -13,7 +14,73 @@ from census.models import Census
 from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
-from voting.models import Voting, Question, QuestionOption
+from voting.models import Candidatura, Voting, Question, QuestionOption
+
+class CandidaturaTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+    
+    def create_candidatura(self, opcion):
+        usuario = User.objects.all()[1]
+        if(opcion=="completo"):
+            c = Candidatura(nombre="Candidatura completa", delegadoCentro=usuario, representanteDelegadoPrimero=usuario,
+            representanteDelegadoSegundo=usuario, representanteDelegadoTercero=usuario, representanteDelegadoCuarto= usuario,
+            representanteDelegadoMaster= usuario)
+        if(opcion=="nulos"):
+            c = Candidatura(nombre="Candidatura con nulos", delegadoCentro=None, representanteDelegadoPrimero=None,
+            representanteDelegadoSegundo=None, representanteDelegadoTercero=None, representanteDelegadoCuarto= None,
+            representanteDelegadoMaster= None)
+        if(opcion=="sinNombre"):
+            c = Candidatura(nombre=None, delegadoCentro=usuario, representanteDelegadoPrimero=usuario,
+            representanteDelegadoSegundo=usuario, representanteDelegadoTercero=usuario, representanteDelegadoCuarto= usuario,
+            representanteDelegadoMaster= usuario)
+        c.save()
+        return c
+    
+    def test_create_candidaturaCompleta(self):
+        '''test: deja crear candidatura con representantes y delegados'''
+        numeroCandidaturas = Candidatura.objects.count()
+        c = self.create_candidatura("completo")
+        numeroCandidaturasTrasCreate = Candidatura.objects.count()
+        self.assertTrue(numeroCandidaturasTrasCreate>numeroCandidaturas)
+        self.assertEqual(Candidatura.objects.get(nombre="Candidatura completa").nombre, "Candidatura completa")
+        c.delete()
+    def test_create_candidaturaSinUsuarios(self):
+        '''test: deja crear candidatura sin representantes y delegados'''
+        numeroCandidaturas = Candidatura.objects.count()
+        c = self.create_candidatura("nulos")
+        numeroCandidaturasTrasCreate = Candidatura.objects.count()
+        self.assertTrue(numeroCandidaturasTrasCreate>numeroCandidaturas)
+        self.assertEqual(Candidatura.objects.get(nombre="Candidatura con nulos").representanteDelegadoCuarto, None)
+        c.delete()
+
+    def test_create_candidaturaSinNombre(self):
+        '''test: NO deja crear candidatura sin nombre'''
+        with self.assertRaises(Exception) as cm:
+            self.create_candidatura("sinNombre")
+        the_exception = cm.exception
+        self.assertEqual(type(the_exception), IntegrityError)
+
+    def test_update_candidatura(self):
+        '''test: se puede actualizar una candidatura'''
+        c = self.create_candidatura("nulos")
+        Candidatura.objects.filter(pk=c.pk).update(nombre="Nombre actualizado")
+        c.refresh_from_db()
+        self.assertEqual(c.nombre, "Nombre actualizado")
+        c.delete()
+
+    def test_delete_candidatura(self):
+        '''test: se borra una candidatura'''
+        numeroCandidaturas = Candidatura.objects.count()
+        c = self.create_candidatura("nulos")
+        numeroCandidaturasTrasCreate = Candidatura.objects.count()
+        self.assertTrue(numeroCandidaturasTrasCreate>numeroCandidaturas)
+        self.assertEqual(Candidatura.objects.get(nombre="Candidatura con nulos").representanteDelegadoCuarto, None)
+        c.delete()
+        self.assertFalse(Candidatura.objects.filter(nombre="Candidatura con nulos").exists())
 
 
 class VotingTestCase(BaseTestCase):
