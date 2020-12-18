@@ -7,6 +7,7 @@ from .models import Question
 from .models import Voting
 from .models import Candidatura
 from .filters import StartedFilter
+from authentication.models import VotingUser
 
 
 def start(modeladmin, request, queryset):
@@ -79,6 +80,38 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 
 realizarEleccionesPrimarias.short_description="Realizar las votaciones primarias de candidaturas seleccionadas"
 
+def realizarEleccionGeneral(ModelAdmin, request, queryset):
+    try:
+        numero_votaciones_generales = Voting.objects.filter(tipo='General voting').count()
+        indice_votacion = str(numero_votaciones_generales + 1)
+        q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
+        q1.save()
+        q2 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de segundo')
+        q2.save()
+        q3 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de tercero')
+        q3.save()
+        q4 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de cuarto')
+        q4.save()
+        q5 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado del master')
+        q5.save()
+        q6 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado al centro')
+        q6.save()
+        q7 = Question(desc='Votación general ' + indice_votacion + ': Elige a los miembros de delegación de alumnos')
+        q7.save()
+        
+        votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='General voting')
+        votacion.save()
+        votacion.question.add(q1, q2, q3, q4, q5, q6, q7)
+
+        # Echarle un vistazo
+        for auth in Auth.objects.all():
+            votacion.auths.add(auth)
+        messages.add_message(request, messages.SUCCESS, "¡Las elección general se ha creado!")
+    except:
+        messages.add_message(request, messages.ERROR, 'Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes')
+realizarEleccionGeneral.short_description='Crear votación general con las candidaturas seleccionadas'
+
+
 def tally(ModelAdmin, request, queryset):
     for v in queryset.filter(end_date__lt=timezone.now()):
         token = request.session.get('auth-token', '')
@@ -103,7 +136,7 @@ class QuestionAdmin(admin.ModelAdmin):
     inlines = [QuestionOptionInline]
 
 class CandidaturaAdmin(admin.ModelAdmin):
-    actions = [ realizarEleccionesPrimarias , borrarVotingPrimary]
+    actions = [ realizarEleccionesPrimarias , borrarVotingPrimary, realizarEleccionGeneral]
 
 class VotingAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date')
