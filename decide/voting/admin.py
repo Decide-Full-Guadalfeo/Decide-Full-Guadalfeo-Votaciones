@@ -81,24 +81,23 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 realizarEleccionesPrimarias.short_description="Realizar las votaciones primarias de candidaturas seleccionadas"
 
 def realizarEleccionGeneral(ModelAdmin, request, queryset):
+    numero_votaciones_generales = Voting.objects.filter(tipo='General voting').count()
+    indice_votacion = str(numero_votaciones_generales + 1)
+    q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
+    q1.save()
+    q2 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de segundo')
+    q2.save()
+    q3 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de tercero')
+    q3.save()
+    q4 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de cuarto')
+    q4.save()
+    q5 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado del master')
+    q5.save()
+    q6 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado al centro')
+    q6.save()
+    q7 = Question(desc='Votación general ' + indice_votacion + ': Elige a los miembros de delegación de alumnos')
+    q7.save()
     try:
-        numero_votaciones_generales = Voting.objects.filter(tipo='General voting').count()
-        indice_votacion = str(numero_votaciones_generales + 1)
-        q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
-        q1.save()
-        q2 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de segundo')
-        q2.save()
-        q3 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de tercero')
-        q3.save()
-        q4 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de cuarto')
-        q4.save()
-        q5 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado del master')
-        q5.save()
-        q6 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado al centro')
-        q6.save()
-        q7 = Question(desc='Votación general ' + indice_votacion + ': Elige a los miembros de delegación de alumnos')
-        q7.save()
-
         contador = 1
         for c in queryset.all():
             nombreCand = c.nombre
@@ -139,6 +138,14 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
             votacion.auths.add(auth)
         messages.add_message(request, messages.SUCCESS, "¡Las elección general se ha creado!")
     except:
+        # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
+        q1.delete()
+        q2.delete()
+        q3.delete()
+        q4.delete()
+        q5.delete()
+        q6.delete()
+        q7.delete()
         messages.add_message(request, messages.ERROR, 'Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes')
 realizarEleccionGeneral.short_description='Crear votación general con las candidaturas seleccionadas'
 
