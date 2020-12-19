@@ -98,6 +98,37 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
         q6.save()
         q7 = Question(desc='Votación general ' + indice_votacion + ': Elige a los miembros de delegación de alumnos')
         q7.save()
+
+        contador = 1
+        for c in queryset.all():
+            nombreCand = c.nombre
+            qo1 = QuestionOption(question=q1, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoPrimero.first_name
+                                    + ' ' + c.representanteDelegadoPrimero.last_name)
+            qo1.save()
+            qo2 = QuestionOption(question=q2, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoSegundo.first_name
+                                    + ' ' + c.representanteDelegadoSegundo.last_name)
+            qo2.save()
+            qo3 = QuestionOption(question=q3, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoTercero.first_name
+                                    + ' ' + c.representanteDelegadoTercero.last_name)
+            qo3.save()
+            qo4 = QuestionOption(question=q4, number=contador, option='Candidatura "' + nombreCand +   '": ' + c.representanteDelegadoCuarto.first_name
+                                    + ' ' + c.representanteDelegadoCuarto.last_name)
+            qo4.save()
+            qo5 = QuestionOption(question=q5, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoMaster.first_name
+                                    + ' ' + c.representanteDelegadoMaster.last_name)
+            qo5.save()
+            qo6 = QuestionOption(question=q6, number=contador, option='Candidatura "' + nombreCand + '": ' + c.delegadoCentro.first_name
+                                    + ' ' + c.delegadoCentro.last_name)
+            qo6.save()
+            #Para delegacion de alumno hay que poner una opcion por cada alumno de la candidatura que no se presente a ninguno de los cargos previos
+            alumnos_candidatura_sin_cargo = VotingUser.objects.filter(candidatura=c)
+            i = 0
+            for alumno in alumnos_candidatura_sin_cargo:
+                if (alumno.user!=c.representanteDelegadoPrimero and alumno!=c.representanteDelegadoSegundo and alumno!=c.representanteDelegadoTercero and alumno!=c.representanteDelegadoCuarto and alumno!=c.representanteDelegadoMaster and alumno!=c.delegadoCentro):
+                    qo7 = QuestionOption(question=q7, number=(contador+i), option='Candidatura "' + nombreCand + '": ' + alumno.user.first_name
+                                    + ' ' + alumno.user.last_name)
+                    qo7.save()
+                    i+=1
         
         votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='General voting')
         votacion.save()
