@@ -81,7 +81,98 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(Candidatura.objects.get(nombre="Candidatura con nulos").representanteDelegadoCuarto, None)
         c.delete()
         self.assertFalse(Candidatura.objects.filter(nombre="Candidatura con nulos").exists())
+        
+   #PRINCIPIO TEST VOTACIONES PRIMARIAS
+        
+    def create_primary_voting(self,nombreVotacion,candidatura):
 
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=candidatura)   
+
+        q1= Question(desc="Elige representante de primero de la candidatura")
+        q1.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q2= Question(desc="Elige representante de segundo de la candidatura")
+        q2.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q3= Question(desc="Elige representante de tercero de la candidatura")
+        q3.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q4= Question(desc="Elige representante de cuarto de la candidatura")
+        q4.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q5= Question(desc="Elige representante de master de la candidatura")
+        q5.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="MASTER"):
+            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q6= Question(desc="Elige representante de delegado de centro")
+        q6.save()
+        i=1
+        for usr in usuarios_candidatura:
+            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        vot= Voting(name=nombreVotacion, desc="Elige a los representantes de tu candidatura.",
+        tipo='Primary Voting',candiancy=candidatura)
+        vot.save()
+        vot.question.add(q1,q2,q3,q4,q5,q6)
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        vot.auths.add(a)  
+        return vot
+
+    def test_create_primary_voting(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_completa= self.create_candidatura("completo")
+        #Creamos la votación añadiendole el nombre
+        votacion_primaria= self.create_primary_voting("Votaciones de delegados",candidatura_completa)
+        numVotacionesTrasCrear=Voting.objects.count()
+        #Comprobamos que se crea correctamente la votacion
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+        #Vemos que existe la votacion
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados")
+        votacion_primaria.delete()
+
+    def test_delete_voting_primary(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_completa= self.create_candidatura("completo")
+        vot= self.create_primary_voting("Votaciones de delegados",candidatura_completa)
+        #Comprobamos que crea correctamente la votacion
+        numVotacionesTrasCrear=Voting.objects.count()
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+
+        #Comprobamos que exista esa votacion y la borramos
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados")
+        vot.delete()
+        numVotacionesTrasBorrar=Voting.objects.count()
+        self.assertTrue(numVotacionesTrasBorrar==num_votaciones)
+
+        #FIN TEST VOTACION PRIMARIA
 
 class VotingTestCase(BaseTestCase):
 
