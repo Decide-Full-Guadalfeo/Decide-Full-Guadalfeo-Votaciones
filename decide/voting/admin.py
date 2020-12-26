@@ -128,6 +128,7 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
                                     + ' ' + alumno.user.last_name)
                     qo7.save()
                     i+=1
+            contador += 1
         
         votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='General voting')
         votacion.save()
@@ -136,7 +137,7 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
         # Echarle un vistazo
         for auth in Auth.objects.all():
             votacion.auths.add(auth)
-        messages.add_message(request, messages.SUCCESS, "¡Las elección general se ha creado!")
+        messages.add_message(request, messages.SUCCESS, "¡La elección general se ha creado!")
     except:
         # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
         q1.delete()
