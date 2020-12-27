@@ -158,6 +158,22 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados")
         votacion_primaria.delete()
 
+    def test_create_primary_voting_candiancy_null(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_null= self.create_candidatura("nulos")
+
+        #Creamos la votación añadiendole el nombre y la candidatura sin representantes
+        votacion_primaria_sin_representantes= self.create_primary_voting("Votaciones de delegados sin representantes",candidatura_null)
+        numVotacionesTrasCrear=Voting.objects.count()
+
+        #Comprobamos que se crea correctamente la votacion
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+
+        #Vemos que existe la votacion
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados sin representantes")
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').candiancy.representanteDelegadoPrimero,None)
+        votacion_primaria_sin_representantes.delete()
+
     def test_delete_voting_primary(self):
         num_votaciones= Voting.objects.count()
         candidatura_completa= self.create_candidatura("completo")
