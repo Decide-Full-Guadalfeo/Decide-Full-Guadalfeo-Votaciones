@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from base import mods
 from base.models import Auth, Key
+from census.models import Census
 
 
 class Question(models.Model):
@@ -133,21 +134,47 @@ class Voting(models.Model):
 
     def do_postproc(self):
         tally = self.tally
-        options = self.question.options.all()
+        questions= self.question.all()
+        tipo = self.tipo
+        titulo = self.name
+        desc = self.desc
+        fecha_inicio = self.start_date
+        fecha_fin = self.end_date
+        n_personas_censo = Census.objects.filter(voting_id=self.id).values_list('voter_id', flat=True).count()
 
+        preguntas = []
         opts = []
-        for opt in options:
-            if isinstance(tally, list):
-                votes = tally.count(opt.number)
-            else:
-                votes = 0
-            opts.append({
-                'option': opt.option,
-                'number': opt.number,
-                'votes': votes
+        for pregunta in questions:
+            titulo = pregunta.desc
+            options = pregunta.options.all()
+            for opt in options:
+                voto_curso= []
+                if isinstance(tally, list):
+                    votes = tally.count(opt.number)
+                else:
+                    votes = 0
+                voto_curso.append({
+                    'primero': '',
+                    'segundo': '',
+                    'tercero': '',
+                    'cuarto': '',
+                    'master': ''
+                })
+                opts.append({
+                    'nombre': opt.option,
+                    'numero': opt.number,
+                    'voto_F': '',
+                    'voto_M': '',
+                    'media_edad': '',
+                    'voto_curso': voto_curso, #solo para aquellas votaciones que no sean de un curso concreto
+                    'votes': votes
+                })
+            preguntas.append({
+                'titulo': titulo,
+                'opts': opts
             })
 
-        data = { 'type': 'IDENTITY', 'options': opts }
+        data = { 'type': 'IDENTITY', 'titulo': titulo, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
