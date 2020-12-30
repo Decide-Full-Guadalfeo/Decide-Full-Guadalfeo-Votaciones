@@ -138,43 +138,58 @@ class Voting(models.Model):
         tipo = self.tipo
         titulo = self.name
         desc = self.desc
-        fecha_inicio = self.start_date
-        fecha_fin = self.end_date
-        n_personas_censo = Census.objects.filter(voting_id=self.id).values_list('voter_id', flat=True).count()
+        fecha_inicio = self.start_date.isoformat(' ')
+        fecha_fin = self.end_date.isoformat(' ')
+        id_votacion = self.id
+        votantes = Census.objects.filter(voting_id=self.id).values_list('voter_id', flat=True)
+        n_personas_censo = votantes.count()
 
         preguntas = []
         opts = []
         for pregunta in questions:
+            aux = False
             titulo = pregunta.desc
             options = pregunta.options.all()
+            if "delegación de alumnos" in titulo or "delegado al centro" in titulo or "delegado de centro" in titulo:
+                aux = True
             for opt in options:
                 voto_curso= []
                 if isinstance(tally, list):
                     votes = tally.count(opt.number)
                 else:
                     votes = 0
-                voto_curso.append({
-                    'primero': '',
-                    'segundo': '',
-                    'tercero': '',
-                    'cuarto': '',
-                    'master': ''
-                })
-                opts.append({
-                    'nombre': opt.option,
-                    'numero': opt.number,
-                    'voto_F': '',
-                    'voto_M': '',
-                    'media_edad': '',
-                    'voto_curso': voto_curso, #solo para aquellas votaciones que no sean de un curso concreto
-                    'votes': votes
-                })
+                if aux:
+                    voto_curso.append({
+                        'primero': '',
+                        'segundo': '',
+                        'tercero': '',
+                        'cuarto': '',
+                        'master': ''
+                    })
+                    opts.append({
+                        'nombre': opt.option,
+                        'numero': opt.number,
+                        'voto_F': '',
+                        'voto_M': '',
+                        'media_edad': '',
+                        'voto_curso': voto_curso,
+                        'votes': votes
+                    })
+                else:
+                    opts.append({
+                        'nombre': opt.option,
+                        'numero': opt.number,
+                        'voto_F': '',
+                        'voto_M': '',
+                        'media_edad': '',
+                        'votes': votes
+                    })
             preguntas.append({
                 'titulo': titulo,
                 'opts': opts
             })
 
-        data = { 'type': 'IDENTITY', 'titulo': titulo, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'preguntas': preguntas }
+        data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': titulo, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
