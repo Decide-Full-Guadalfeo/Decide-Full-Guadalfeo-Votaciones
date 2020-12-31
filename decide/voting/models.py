@@ -96,6 +96,7 @@ class Voting(models.Model):
         # gettings votes from store
         votes = mods.get('store', params={'voting_id': self.id}, HTTP_AUTHORIZATION='Token ' + token)
         # anon votes
+        print(votes)
         return [[i['a'], i['b']] for i in votes]
 
     def tally_votes(self, token=''):
@@ -184,11 +185,14 @@ class Voting(models.Model):
                         'media_edad': '',
                         'votes': votes
                     })
+
+            def ordenaVotos(d):
+                return d['votes']
+
             preguntas.append({
                 'titulo': titulo,
-                'opts': opts
+                'opts': opts.sort(reverse=True, key=ordenaVotos)
             })
-
         data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': titulo, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
