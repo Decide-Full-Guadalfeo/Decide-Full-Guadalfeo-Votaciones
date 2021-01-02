@@ -16,6 +16,22 @@ from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Candidatura, Voting, Question, QuestionOption
 
+
+
+
+
+class VotacionTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+    
+    def create_votacion(self, opcion):
+        if(opcion=="primary"):
+            v = Voting(name="Prueba elección primaria")
+    
+
 class CandidaturaTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
