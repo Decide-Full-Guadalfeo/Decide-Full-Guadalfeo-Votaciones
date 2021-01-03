@@ -51,15 +51,14 @@ class VotacionTestCase(BaseTestCase):
             q2.save()
             opt2 = QuestionOption(question=q2, option="test2")
             opt2.save()
-            list = []
-            list.append(q)
-            list.append(q2)
             if(opcion2=="primary"):
-                v = Voting(name="Test primaria 1 pregunta",question=list ,tipo='PV', candiancy=c)
+                v = Voting(name="Test primaria 1 pregunta",tipo='PV', candiancy=c)
                 v.save()
+                v.question.add(q,q2)
             if(opcion2=="general"):
-                v = Voting(name="Test genereal 1 pregunta",question=list,tipo='GV')
+                v = Voting(name="Test genereal 1 pregunta",tipo='GV')
                 v.save()
+                v.question.add(q,q2)
         return v
     def test_create_voting_primary_1question(self):
         v = self.create_votacion("one", "primary")
@@ -74,6 +73,21 @@ class VotacionTestCase(BaseTestCase):
         numeroPreguntas = v.question.count()
         self.assertTrue(numeroPreguntas==1)
         v.delete()
+
+    def test_create_voting_primary_2question(self):
+        v = self.create_votacion("two", "primary")
+        self.assertEqual(Voting.objects.get(tipo="PV").tipo, "PV")
+        numeroPreguntas = v.question.count()
+        self.assertTrue(numeroPreguntas==2)
+        v.delete()
+
+    def test_create_voting_general_2question(self):
+        v = self.create_votacion("two", "general")
+        self.assertEqual(Voting.objects.get(tipo="GV").tipo, "GV")
+        numeroPreguntas = v.question.count()
+        self.assertTrue(numeroPreguntas==2)
+        v.delete()
+    
 
 class CandidaturaTestCase(BaseTestCase):
     def setUp(self):
