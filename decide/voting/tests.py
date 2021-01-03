@@ -16,10 +16,6 @@ from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Candidatura, Voting, Question, QuestionOption
 
-
-
-
-
 class VotacionTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -27,10 +23,51 @@ class VotacionTestCase(BaseTestCase):
     def tearDown(self):
         super().tearDown()
     
-    def create_votacion(self, opcion):
-        if(opcion=="primary"):
-            v = Voting(name="Prueba elección primaria")
-    
+    def create_votacion(self, opcion, opcion2):
+        usuario = User.objects.all()[1]
+        c = Candidatura(nombre="Candidatura completa", delegadoCentro=usuario, representanteDelegadoPrimero=usuario,
+            representanteDelegadoSegundo=usuario, representanteDelegadoTercero=usuario, representanteDelegadoCuarto= usuario,
+            representanteDelegadoMaster= usuario)
+        c.save()
+        if(opcion == "one"):
+            q = Question(desc="test question")
+            q.save()
+            opt = QuestionOption(question=q, option="test")
+            opt.save()
+            if(opcion2=="primary"):
+                v = Voting(name="Test primaria 1 pregunta",tipo='PV', candiancy=c)
+                v.save()
+                v.question.add(q)
+            if(opcion2=="general"):
+                v = Voting(name="Test genereal 1 pregunta",tipo='GV')
+                v.save()
+                v.question.add(q)
+        if(opcion == "two"):
+            q = Question(desc="test question")
+            q.save()
+            opt = QuestionOption(question=q, option="test")
+            opt.save()
+            q2 = Question(desc="test question 2")
+            q2.save()
+            opt2 = QuestionOption(question=q2, option="test2")
+            opt2.save()
+            list = []
+            list.append(q)
+            list.append(q2)
+            if(opcion2=="primary"):
+                v = Voting(name="Test primaria 1 pregunta",question=list ,tipo='PV', candiancy=c)
+                v.save()
+            if(opcion2=="general"):
+                v = Voting(name="Test genereal 1 pregunta",question=list,tipo='GV')
+                v.save()
+        return v
+    def test_create_voting_primary_1question(self):
+        v = self.create_votacion("one", "primary")
+        self.assertEqual(Voting.objects.get(tipo="PV").tipo, "PV")
+        numeroPreguntas = v.question.count()
+        self.assertTrue(numeroPreguntas==1)
+        v.delete()
+
 
 class CandidaturaTestCase(BaseTestCase):
     def setUp(self):
