@@ -8,6 +8,7 @@ from .models import Voting
 from .models import Candidatura
 from .filters import StartedFilter
 from authentication.models import VotingUser
+import datetime
 
 
 def start(modeladmin, request, queryset):
@@ -19,8 +20,11 @@ def start(modeladmin, request, queryset):
 
 def stop(ModelAdmin, request, queryset):
     for v in queryset.all():
-        v.end_date = timezone.now()
-        v.save()
+        if isinstance(v.start_date,datetime.datetime):
+            v.end_date = timezone.now()
+            v.save()
+        else:
+            messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
 
 def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
     
