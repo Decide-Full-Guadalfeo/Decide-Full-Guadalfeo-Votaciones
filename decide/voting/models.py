@@ -126,23 +126,30 @@ class Voting(models.Model):
         if response.status_code != 200:
             # TODO: manage error
             pass
-
         self.tally = response.json()
         self.save()
 
         self.do_postproc()
 
     def do_postproc(self):
+        from authentication.models import VotingUser
         tally = self.tally
         questions= self.question.all()
         tipo = self.tipo
-        titulo = self.name
+        tituloV = self.name
         desc = self.desc
         fecha_inicio = self.start_date.isoformat(' ')
         fecha_fin = self.end_date.isoformat(' ')
         id_votacion = self.id
         votantes = Census.objects.filter(voting_id=self.id).values_list('voter_id', flat=True)
+        censados = User.objects.filter(id__in=votantes)
         n_personas_censo = votantes.count()
+        n_votantes = 0
+        n_hombres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='HOMBRE').count()
+        n_votantes_m = 0
+        n_mujeres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='MUJER').count()
+        n_votantes_f = 0
+        media_edad_votantes = 0.0
 
         preguntas = []
         opts = []
@@ -150,6 +157,7 @@ class Voting(models.Model):
             aux = False
             titulo = pregunta.desc
             options = pregunta.options.all()
+            numero_candidatos= options.count()
             if "delegación de alumnos" in titulo or "delegado al centro" in titulo or "delegado de centro" in titulo:
                 aux = True
             for opt in options:
@@ -160,39 +168,74 @@ class Voting(models.Model):
                     votes = 0
                 if aux:
                     voto_curso.append({
-                        'primero': '',
-                        'segundo': '',
-                        'tercero': '',
-                        'cuarto': '',
-                        'master': ''
+                    'primero': '',
+                    'segundo': '',
+                    'tercero': '',
+                    'cuarto': '',
+                    'master': ''
                     })
                     opts.append({
-                        'nombre': opt.option,
-                        'numero': opt.number,
-                        'voto_F': '',
-                        'voto_M': '',
-                        'media_edad': '',
-                        'voto_curso': voto_curso,
-                        'votes': votes
+                    'nombre': opt.option,
+                    'numero': opt.number,
+                    'voto_F': '',
+                    'voto_M': '',
+                    'media_edad': '',
+                    'voto_curso': voto_curso,
+                    'votes': votes
                     })
                 else:
                     opts.append({
-                        'nombre': opt.option,
-                        'numero': opt.number,
-                        'voto_F': '',
-                        'voto_M': '',
-                        'media_edad': '',
-                        'votes': votes
+                    'nombre': opt.option,
+                    'numero': opt.number,
+                    'voto_F': '',
+                    'voto_M': '',
+                    'media_edad': '',
+                    'votes': votes
                     })
 
             def ordenaVotos(d):
                 return d['votes']
-
-            preguntas.append({
+            if aux:
+                preguntas.append({
                 'titulo': titulo,
+                'numero_candidatos': numero_candidatos,
                 'opts': opts.sort(reverse=True, key=ordenaVotos)
-            })
-        data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': titulo, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'preguntas': preguntas }
+                })
+            else:
+                if 'primero' in titulo:
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').filter(sexo='HOMBRE').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').filter(sexo='MUJER').count()
+                elif 'segundo' in titulo:
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').filter(sexo='HOMBRE').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').filter(sexo='MUJER').count()
+                elif 'tercero' in titulo:
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').filter(sexo='HOMBRE').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').filter(sexo='MUJER').count()
+                elif 'cuarto' in titulo:
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').filter(sexo='HOMBRE').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').filter(sexo='MUJER').count()
+                else:
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').filter(sexo='HOMBRE').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').filter(sexo='MUJER').count()
+                preguntas.append({
+                'titulo': titulo,
+                'numero_candidatos': numero_candidatos,
+                'n_personas_censo': n_censo_pregunta,
+                'n_votantes': 0,
+                'n_hombres_censo': nh_censo_pregunta,
+                'n_votantes_m': 0,
+                'n_mujeres_censo': nm_censo_pregunta,
+                'n_votantes_f': 0,
+                'media_edad_votantes': 0.0,
+                'opts': opts.sort(reverse=True, key=ordenaVotos)
+                })
+                
+        data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': tituloV, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'n_votantes': n_votantes , 'n_hombres_censo': n_hombres_censo , 'n_votantes_m': n_votantes_m , 'n_mujeres_censo': n_mujeres_censo , 'n_votantes_f': n_votantes_f , 'media_edad_votantes': media_edad_votantes , 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
         self.postproc = postp
