@@ -68,6 +68,12 @@ class VotacionTestCase(BaseTestCase):
         self.assertTrue(numeroPreguntas==1)
         v.delete()
 
+    def test_create_voting_general_1question(self):
+        v = self.create_votacion("one", "general")
+        self.assertEqual(Voting.objects.get(tipo="GV").tipo, "GV")
+        numeroPreguntas = v.question.count()
+        self.assertTrue(numeroPreguntas==1)
+        v.delete()
 
 class CandidaturaTestCase(BaseTestCase):
     def setUp(self):
