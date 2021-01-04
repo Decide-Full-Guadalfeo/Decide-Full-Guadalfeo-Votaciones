@@ -16,6 +16,18 @@ from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Candidatura, Voting, Question, QuestionOption
 
+from django.test import TestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+
+from base.tests import BaseTestCase
+
+
 class VotacionTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -348,3 +360,59 @@ class VotingTestCase(BaseTestCase):
         response = self.client.put('/voting/{}/'.format(voting.pk), data, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), 'Voting already tallied')
+
+class PrimaryVotingTestCase(StaticLiveServerTestCase):
+   def setUp(self):
+        #Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        options = webdriver.ChromeOptions()
+        ##options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+        super().setUp()    
+
+   def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+        self.base.tearDown()
+  
+   def test_primaryvoting_2questions(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("fernando")
+        self.driver.find_element(By.ID, "id_password").send_keys("fernando")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Prueba2")
+        dropdown = self.driver.find_element(By.ID, "id_question")
+        dropdown.find_element(By.XPATH, "//option[. = 'Elige al 2 representante']").click()
+        self.driver.find_element(By.ID, "id_tipo").click()
+        self.driver.find_element(By.ID, "id_tipo").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        dropdown = self.driver.find_element(By.ID, "id_candiancy")
+        dropdown.find_element(By.XPATH, "//option[. = 'Candidatura de prueba']").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
+        self.driver.find_element(By.NAME, "_save").click()
+        elements = self.driver.find_elements(By.CSS_SELECTOR, ".success")
+        assert len(elements) > 0
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > a").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
+        value = self.driver.find_element(By.ID, "id_name").get_attribute("value")
+        assert value == "Prueba2"
+        element = self.driver.find_element(By.ID, "id_question")
+        locator = "option[@value='{}']".format(element.get_attribute("value"))
+        selected_text = element.find_element(By.XPATH, locator).text
+        assert selected_text == "Elige al 2 representante"
+        element = self.driver.find_element(By.ID, "id_tipo")
+        locator = "option[@value='{}']".format(element.get_attribute("value"))
+        selected_text = element.find_element(By.XPATH, locator).text
+        assert selected_text == "Primary voting"
+        element = self.driver.find_element(By.ID, "id_candiancy")
+        locator = "option[@value='{}']".format(element.get_attribute("value"))
+        selected_text = element.find_element(By.XPATH, locator).text
+        assert selected_text == "Candidatura de prueba"
