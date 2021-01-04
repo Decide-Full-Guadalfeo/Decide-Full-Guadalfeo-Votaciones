@@ -368,7 +368,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        ##options.headless = True
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()    
@@ -380,8 +380,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
   
    def test_primaryvoting_2questions(self):
         self.driver.get(f'{self.live_server_url}/admin/')
-        self.driver.find_element(By.ID, "id_username").send_keys("fernando")
-        self.driver.find_element(By.ID, "id_password").send_keys("fernando")
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
