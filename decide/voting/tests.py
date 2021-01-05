@@ -307,6 +307,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
     
     def test_view_CreateGeneralVotingOneCandiancyCorrect(self):
         '''test: se crea correctamente la votación general con una candidatura que ha hecho primarias'''
+        adminId = str(User.objects.get(username='admin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
@@ -359,31 +360,31 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado al centro"
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de cuarto"
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de tercero"
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de segundo"
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de primero"
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.ID, "id_options-0-option").click()
@@ -423,6 +424,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
             
     def test_view_createGeneralVotingMoreThenOneCandiancyCorrect(self):
         '''test: se crea correctamente la votación general con más de una candidatura que han hecho primarias'''
+        adminId = str(User.objects.get(username='admin').id)
+        noAdminId = str(User.objects.get(username='noadmin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
@@ -493,8 +496,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado al centro"
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba 2 con representantes elegidos": noadmin_firstname noadmin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -502,8 +505,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de cuarto"
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba 2 con representantes elegidos": noadmin_firstname noadmin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' +adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -511,8 +514,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de tercero"
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba 2 con representantes elegidos": noadmin_firstname noadmin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -520,8 +523,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de segundo"
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba 2 con representantes elegidos": noadmin_firstname noadmin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -529,8 +532,8 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").click()
         assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de primero"
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'Candidatura "Candidatura de prueba con representantes elegidos": admin_firstname admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'Candidatura "Candidatura de prueba 2 con representantes elegidos": noadmin_firstname noadmin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -578,13 +581,10 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         actions = ActionChains(self.driver)
         actions.move_to_element(element).release().perform()
         self.driver.find_element(By.NAME, "action").click()
-        time.sleep(2)
         self.driver.find_element(By.NAME, "index").click()
-        time.sleep(2)
         element = self.driver.find_element(By.CSS_SELECTOR, ".error")
         actions = ActionChains(self.driver)
         actions.double_click(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".error").click()
-        time.sleep(2)
 
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
