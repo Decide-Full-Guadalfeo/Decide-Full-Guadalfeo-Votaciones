@@ -1,7 +1,10 @@
 from django.db import models
-from voting.models import Candidatura
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+from voting.models import Candidatura
+
 
 class VotingUser(models.Model):
 
@@ -12,6 +15,7 @@ class VotingUser(models.Model):
             regex='^\d{8}[A-Z]{1}$',
             message='El formato debe ser 8 digitos y una letra mayuscula.'
         )
+
     ])
 
     Sexo_Enum = (
@@ -33,6 +37,7 @@ class VotingUser(models.Model):
 
     curso = models.CharField(max_length=7, choices=Curso_Enum, default='PRIMERO', blank=False)
     candidatura = models.ForeignKey(Candidatura, blank=True, null=True, on_delete=models.SET_NULL)
+
 
     def __str__(self):
         return self.user.__str__()
