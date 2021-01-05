@@ -212,7 +212,7 @@ class CandidaturaTestCase(BaseTestCase):
         q1.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="PRIMERO"):
-            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
@@ -220,7 +220,7 @@ class CandidaturaTestCase(BaseTestCase):
         q2.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
-            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
@@ -228,7 +228,7 @@ class CandidaturaTestCase(BaseTestCase):
         q3.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="TERCERO"):
-            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
@@ -236,7 +236,7 @@ class CandidaturaTestCase(BaseTestCase):
         q4.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="CUARTO"):
-            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
@@ -244,7 +244,7 @@ class CandidaturaTestCase(BaseTestCase):
         q5.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="MASTER"):
-            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
@@ -252,7 +252,7 @@ class CandidaturaTestCase(BaseTestCase):
         q6.save()
         i=1
         for usr in usuarios_candidatura:
-            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
