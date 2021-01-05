@@ -18,13 +18,15 @@ from voting.models import Candidatura, Voting, Question, QuestionOption
 
 from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
-
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+import time
 from base.tests import BaseTestCase
 
 
@@ -383,12 +385,91 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Auths").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Test")
+        self.driver.find_element(By.ID, "id_url").click()
+        self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba")
+        self.driver.find_element(By.ID, "id_delegadoCentro").click()
+        dropdown = self.driver.find_element(By.ID, "id_delegadoCentro")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_delegadoCentro").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoPrimero").click()
+        dropdown = self.driver.find_element(By.ID, "id_representanteDelegadoPrimero")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoPrimero").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoSegundo").click()
+        dropdown = self.driver.find_element(By.ID, "id_representanteDelegadoSegundo")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoSegundo").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoTercero").click()
+        dropdown = self.driver.find_element(By.ID, "id_representanteDelegadoTercero")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoTercero").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoCuarto").click()
+        dropdown = self.driver.find_element(By.ID, "id_representanteDelegadoCuarto")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoCuarto").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoMaster").click()
+        dropdown = self.driver.find_element(By.ID, "id_representanteDelegadoMaster")
+        dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
+        self.driver.find_element(By.ID, "id_representanteDelegadoMaster").click()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Test 1")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.CSS_SELECTOR, "#options-1 > .field-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("0")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        element = self.driver.find_element(By.ID, "id_options-1-number")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("admin")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("admin")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Test 2")
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        element = self.driver.find_element(By.ID, "id_options-1-number")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("admin")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("admin")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Test")
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element(By.ID, "id_name").click()
         self.driver.find_element(By.ID, "id_name").send_keys("Prueba2")
         dropdown = self.driver.find_element(By.ID, "id_question")
-        dropdown.find_element(By.XPATH, "//option[. = 'Elige al 2 representante']").click()
+        dropdown.find_element(By.XPATH, "//option[. = 'Test 1']").click()
         self.driver.find_element(By.ID, "id_tipo").click()
         self.driver.find_element(By.ID, "id_tipo").click()
         self.driver.find_element(By.ID, "id_candiancy").click()
@@ -402,12 +483,12 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert len(elements) > 0
         self.driver.find_element(By.CSS_SELECTOR, ".field-name > a").click()
         self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
-        value = self.driver.find_element(By.ID, "id_name").get_attribute("value")
-        assert value == "Prueba2"
+        #value = self.driver.find_element(By.ID, "id_name").get_attribute("value")
+        #assert value == "Test"
         element = self.driver.find_element(By.ID, "id_question")
         locator = "option[@value='{}']".format(element.get_attribute("value"))
         selected_text = element.find_element(By.XPATH, locator).text
-        assert selected_text == "Elige al 2 representante"
+        assert selected_text == "Test 1"
         element = self.driver.find_element(By.ID, "id_tipo")
         locator = "option[@value='{}']".format(element.get_attribute("value"))
         selected_text = element.find_element(By.XPATH, locator).text
