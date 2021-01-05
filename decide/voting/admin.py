@@ -30,42 +30,42 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
         from authentication.models import VotingUser
         usuarios_candidatura = VotingUser.objects.filter(candidatura=c)    
         for usr in usuarios_candidatura.filter(curso="PRIMERO"):
-            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
         q2.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
-            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
         q3.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="TERCERO"):
-            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
         q4.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="CUARTO"):
-            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
         q5.save()
         i=1
         for usr in usuarios_candidatura.filter(curso="MASTER"):
-            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q6 = Question(desc='elige representante de delegado de centro de la candidatura "'+ c.nombre+'"')
         q6.save()
         i=1
         for usr in usuarios_candidatura:
-            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
 
