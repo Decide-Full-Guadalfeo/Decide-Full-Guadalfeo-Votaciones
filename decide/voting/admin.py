@@ -100,32 +100,31 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
     try:
         contador = 1
         for c in queryset.all():
-            nombreCand = c.nombre
-            qo1 = QuestionOption(question=q1, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoPrimero.first_name
-                                    + ' ' + c.representanteDelegadoPrimero.last_name)
+            qo1 = QuestionOption(question=q1, number=contador, option=c.representanteDelegadoPrimero.first_name
+                                    + ' ' + c.representanteDelegadoPrimero.last_name + ' / ' + str(c.representanteDelegadoPrimero.id))
             qo1.save()
-            qo2 = QuestionOption(question=q2, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoSegundo.first_name
-                                    + ' ' + c.representanteDelegadoSegundo.last_name)
+            qo2 = QuestionOption(question=q2, number=contador, option=c.representanteDelegadoSegundo.first_name
+                                    + ' ' + c.representanteDelegadoSegundo.last_name + ' / ' + str(c.representanteDelegadoSegundo.id))
             qo2.save()
-            qo3 = QuestionOption(question=q3, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoTercero.first_name
-                                    + ' ' + c.representanteDelegadoTercero.last_name)
+            qo3 = QuestionOption(question=q3, number=contador, option=c.representanteDelegadoTercero.first_name
+                                    + ' ' + c.representanteDelegadoTercero.last_name + ' / ' + str(c.representanteDelegadoTercero.id)) 
             qo3.save()
-            qo4 = QuestionOption(question=q4, number=contador, option='Candidatura "' + nombreCand +   '": ' + c.representanteDelegadoCuarto.first_name
-                                    + ' ' + c.representanteDelegadoCuarto.last_name)
+            qo4 = QuestionOption(question=q4, number=contador, option=c.representanteDelegadoCuarto.first_name
+                                    + ' ' + c.representanteDelegadoCuarto.last_name + ' / ' + str(c.representanteDelegadoCuarto.id))
             qo4.save()
-            qo5 = QuestionOption(question=q5, number=contador, option='Candidatura "' + nombreCand + '": ' + c.representanteDelegadoMaster.first_name
-                                    + ' ' + c.representanteDelegadoMaster.last_name)
+            qo5 = QuestionOption(question=q5, number=contador, option=c.representanteDelegadoMaster.first_name
+                                    + ' ' + c.representanteDelegadoMaster.last_name + ' / ' + str(c.representanteDelegadoMaster.id))
             qo5.save()
-            qo6 = QuestionOption(question=q6, number=contador, option='Candidatura "' + nombreCand + '": ' + c.delegadoCentro.first_name
-                                    + ' ' + c.delegadoCentro.last_name)
+            qo6 = QuestionOption(question=q6, number=contador, option=c.delegadoCentro.first_name
+                                    + ' ' + c.delegadoCentro.last_name + ' / ' + str(c.delegadoCentro.id))
             qo6.save()
             #Para delegacion de alumno hay que poner una opcion por cada alumno de la candidatura que no se presente a ninguno de los cargos previos
             alumnos_candidatura_sin_cargo = VotingUser.objects.filter(candidatura=c)
             i = 0
             for alumno in alumnos_candidatura_sin_cargo:
                 if (alumno.user!=c.representanteDelegadoPrimero and alumno!=c.representanteDelegadoSegundo and alumno!=c.representanteDelegadoTercero and alumno!=c.representanteDelegadoCuarto and alumno!=c.representanteDelegadoMaster and alumno!=c.delegadoCentro):
-                    qo7 = QuestionOption(question=q7, number=(contador+i), option='Candidatura "' + nombreCand + '": ' + alumno.user.first_name
-                                    + ' ' + alumno.user.last_name)
+                    qo7 = QuestionOption(question=q7, number=(contador+i), option=alumno.user.first_name
+                                    + ' ' + alumno.user.last_name + ' / ' + str(alumno.user.id))
                     qo7.save()
                     i+=1
             contador += 1
@@ -138,7 +137,8 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
         for auth in Auth.objects.all():
             votacion.auths.add(auth)
         messages.add_message(request, messages.SUCCESS, "¡La elección general se ha creado!")
-    except:
+    except Exception as e:
+        print(e)
         # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
         q1.delete()
         q2.delete()
