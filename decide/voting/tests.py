@@ -16,7 +16,6 @@ from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
 from voting.models import Candidatura, Voting, Question, QuestionOption
 
-from django.test import TestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -27,6 +26,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import time
+
 from base.tests import BaseTestCase
 
 
@@ -74,6 +74,7 @@ class VotacionTestCase(BaseTestCase):
                 v.save()
                 v.question.add(q,q2)
         return v
+      
     def test_create_voting_primary_1question(self):
         v = self.create_votacion("one", "primary")
         self.assertEqual(Voting.objects.get(tipo="PV").tipo, "PV")
@@ -102,7 +103,6 @@ class VotacionTestCase(BaseTestCase):
         self.assertTrue(numeroPreguntas==2)
         v.delete()
     
-
 class CandidaturaTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -364,6 +364,7 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.json(), 'Voting already tallied')
 
 class PrimaryVotingTestCase(StaticLiveServerTestCase):
+  
    def setUp(self):
         #Load base test functionality for decide
         self.base = BaseTestCase()
@@ -603,3 +604,306 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert len(elements) > 0
         elements = self.driver.find_elements(By.CSS_SELECTOR, "li")
         assert len(elements) > 0
+        
+ 
+class GeneralVotingTestCase(StaticLiveServerTestCase):
+
+    def setUp(self):
+        #Load base test functionality for decide
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+        super().setUp()    
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+        self.base.tearDown()
+    
+    def test_view_CreateGeneralVotingOneCandiancyCorrect(self):
+        '''test: se crea correctamente la votación general con una candidatura que ha hecho primarias'''
+        adminId = str(User.objects.get(username='admin').id)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Crear votación general con las candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".success").text == "¡La elección general se ha creado!"
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1").text == "Votación general 1"
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige a los miembros de delegación de alumnos").text == "Votación general 1: Elige a los miembros de delegación de alumnos"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").text == "Votación general 1: Elige al delegado al centro"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado del master").text == "Votación general 1: Elige al delegado del master"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").text == "Votación general 1: Elige al delegado de cuarto"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").text == "Votación general 1: Elige al delegado de tercero"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").text == "Votación general 1: Elige al delegado de segundo"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").text == "Votación general 1: Elige al delegado de primero"
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige a los miembros de delegación de alumnos").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige a los miembros de delegación de alumnos"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado al centro"
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de cuarto"
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de tercero"
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de segundo"
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de primero"
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname / ' + adminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+
+    def test_view_createGeneralVotingOneCandiancyIncorrect(self):
+        '''test: no se crea  la votación general con una candidatura que no ha hecho primarias'''
+        self.driver.implicitly_wait(30)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes sin elegir") 
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Crear votación general con las candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".error").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".error").click()
+        element = self.driver.find_element(By.CSS_SELECTOR, ".error")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.CSS_SELECTOR, ".error").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
+            
+    def test_view_createGeneralVotingMoreThenOneCandiancyCorrect(self):
+        '''test: se crea correctamente la votación general con más de una candidatura que han hecho primarias'''
+        adminId = str(User.objects.get(username='admin').id)
+        noAdminId = str(User.objects.get(username='noadmin').id)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba 2 con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('noadmin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".row2 .action-select").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Crear votación general con las candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".success").text == "¡La elección general se ha creado!"
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1").text == "Votación general 1"
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige a los miembros de delegación de alumnos").text == "Votación general 1: Elige a los miembros de delegación de alumnos"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").text == "Votación general 1: Elige al delegado al centro"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado del master").text == "Votación general 1: Elige al delegado del master"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").text == "Votación general 1: Elige al delegado de cuarto"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").text == "Votación general 1: Elige al delegado de tercero"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").text == "Votación general 1: Elige al delegado de segundo"
+        assert self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").text == "Votación general 1: Elige al delegado de primero"
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige a los miembros de delegación de alumnos").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige a los miembros de delegación de alumnos"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado al centro").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado al centro"
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+        assert value == "2"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de cuarto").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de cuarto"
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' +adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+        assert value == "2"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de tercero").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de tercero"
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+        assert value == "2"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de segundo").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de segundo"
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+        assert value == "2"
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1: Elige al delegado de primero").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Votación general 1: Elige al delegado de primero"
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname / ' + adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname / ' + noAdminId
+        value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+        assert value == "1"
+        value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+        assert value == "2"
+
+    def test_view_createGeneralVotingMoreThenOneCandiancyIncorrect(self):
+        '''test: no se crea la votación general con varias candidatura si una no ha celebrado primarias'''
+        self.driver.implicitly_wait(30)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos") 
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".row2 .action-select").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Crear votación general con las candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        element = self.driver.find_element(By.CSS_SELECTOR, ".error")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.CSS_SELECTOR, ".error").click()
+
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
