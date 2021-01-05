@@ -8,6 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from django.contrib.auth.models import User
 
 class PrimaryVotingTestCase(StaticLiveServerTestCase):
 
@@ -28,6 +29,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
 
     def test_view_createPrimaryVotingOneCandiancyCorrect(self):
 
+        adminId = str(User.objects.get(username='admin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
@@ -81,48 +83,51 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
 
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de master de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de master de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
 
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
 
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
 
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname admin_lastname /'+ adminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
 
         self.driver.find_element(By.ID, "id_options-0-option").click()
 
     def test_view_createPrimaryVotingMoreThanOneCandiancyCorrect(self):
+
+        adminId = str(User.objects.get(username='admin').id)
+        noadminId = str(User.objects.get(username='noadmin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
@@ -196,8 +201,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -206,8 +211,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de master de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de master de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -216,8 +221,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -226,8 +231,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -236,8 +241,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
@@ -246,8 +251,8 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').click()
         assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
-        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname+" "+admin_lastname'
-        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'admin_firstname+" "+admin_lastname'
+        assert self.driver.find_element(By.ID, "id_options-1-option").text == 'admin_firstname admin_lastname /'+ adminId
+        assert self.driver.find_element(By.ID, "id_options-0-option").text == 'noadmin_firstname noadmin_lastname /'+ noadminId
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
