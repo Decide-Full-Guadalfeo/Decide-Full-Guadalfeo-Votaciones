@@ -14,6 +14,7 @@ from census.models import Census
 from mixnet.mixcrypt import ElGamal
 from mixnet.mixcrypt import MixCrypt
 from mixnet.models import Auth
+from authentication.models import VotingUser
 from voting.models import Candidatura, Voting, Question, QuestionOption
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -109,7 +110,39 @@ class CandidaturaTestCase(BaseTestCase):
 
     def tearDown(self):
         super().tearDown()
-    
+    def create_candidatura_w_voting_users(self):
+        c = Candidatura(nombre="Candidatura con votingusers", delegadoCentro=None, representanteDelegadoPrimero=None,
+            representanteDelegadoSegundo=None, representanteDelegadoTercero=None, representanteDelegadoCuarto= None,
+            representanteDelegadoMaster= None)
+        c.save()
+
+        u1 = User(username="firstVoter", first_name="representante de",last_name="primer curso")
+        u1.save()
+        v1 = VotingUser(user=u1,dni="47348063C",sexo="HOMBRE",titulo="SOFTWARE",curso="PRIMERO", candidatura=c)
+        v1.save()
+
+        u2 = User(username="secondVoter", first_name="representante de",last_name="segundo curso")
+        u2.save()
+        v2 = VotingUser(user=u2,dni="47348063F",sexo="MUJER",titulo="SOFTWARE",curso="SEGUNDO", candidatura=c)
+        v2.save()
+
+        u3 = User(username="third", first_name="representante de",last_name="tercer curso")
+        u3.save()
+        v3 = VotingUser(user=u3,dni="47348068C",sexo="HOMBRE",titulo="SOFTWARE",curso="TERCERO", candidatura=c)
+        v3.save()
+
+        u4 = User(username="fourth", first_name="representante de",last_name="cuarto curso")
+        u4.save()
+        v4 = VotingUser(user=u4,dni="47347963C",sexo="HOMBRE",titulo="SOFTWARE",curso="CUARTO", candidatura=c)
+        v4.save()
+
+        u5 = User(username="master", first_name="representante de",last_name="master curso")
+        u5.save()
+        v5 = VotingUser(user=u5,dni="47297963C",sexo="HOMBRE",titulo="SOFTWARE",curso="MASTER", candidatura=c)
+        v5.save()
+
+        return c
+        
     def create_candidatura(self, opcion):
         usuario = User.objects.all()[1]
         if(opcion=="completo"):
@@ -126,7 +159,6 @@ class CandidaturaTestCase(BaseTestCase):
             representanteDelegadoMaster= usuario)
         c.save()
         return c
-    
     def test_create_candidaturaCompleta(self):
         '''test: deja crear candidatura con representantes y delegados'''
         numeroCandidaturas = Candidatura.objects.count()
@@ -135,6 +167,7 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertTrue(numeroCandidaturasTrasCreate>numeroCandidaturas)
         self.assertEqual(Candidatura.objects.get(nombre="Candidatura completa").nombre, "Candidatura completa")
         c.delete()
+
     def test_create_candidaturaSinUsuarios(self):
         '''test: deja crear candidatura sin representantes y delegados'''
         numeroCandidaturas = Candidatura.objects.count()
@@ -168,8 +201,136 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(Candidatura.objects.get(nombre="Candidatura con nulos").representanteDelegadoCuarto, None)
         c.delete()
         self.assertFalse(Candidatura.objects.filter(nombre="Candidatura con nulos").exists())
+    
+   #PRINCIPIO TEST VOTACIONES PRIMARIAS
+    
+    def create_primary_voting(self,nombreVotacion,candidatura):
 
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=candidatura)   
 
+        q1= Question(desc="Elige representante de primero de la candidatura")
+        q1.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q2= Question(desc="Elige representante de segundo de la candidatura")
+        q2.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q3= Question(desc="Elige representante de tercero de la candidatura")
+        q3.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q4= Question(desc="Elige representante de cuarto de la candidatura")
+        q4.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q5= Question(desc="Elige representante de master de la candidatura")
+        q5.save()
+        i=1
+        for usr in usuarios_candidatura.filter(curso="MASTER"):
+            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        q6= Question(desc="Elige representante de delegado de centro")
+        q6.save()
+        i=1
+        for usr in usuarios_candidatura:
+            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name)
+            qo.save()
+            i+=1
+
+        vot= Voting(name=nombreVotacion, desc="Elige a los representantes de tu candidatura.",
+        tipo='Primary Voting',candiancy=candidatura)
+        vot.save()
+        vot.question.add(q1,q2,q3,q4,q5,q6)
+
+        a, _ = Auth.objects.get_or_create(url=settings.BASEURL, defaults={'me': True, 'name': 'test auth'})
+        a.save()
+        vot.auths.add(a)  
+        return vot
+
+    def test_create_primary_voting(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_completa= self.create_candidatura("completo")
+        #Creamos la votación añadiendole el nombre
+        votacion_primaria= self.create_primary_voting("Votaciones de delegados",candidatura_completa)
+        numVotacionesTrasCrear=Voting.objects.count()
+        #Comprobamos que se crea correctamente la votacion
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+        #Vemos que existe la votacion
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados")
+        votacion_primaria.delete()
+
+    def test_create_primary_voting_candiancy_null(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_null= self.create_candidatura("nulos")
+
+        #Creamos la votación añadiendole el nombre y la candidatura sin representantes
+        votacion_primaria_sin_representantes= self.create_primary_voting("Votaciones de delegados sin representantes",candidatura_null)
+        numVotacionesTrasCrear=Voting.objects.count()
+
+        #Comprobamos que se crea correctamente la votacion
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+
+        #Vemos que existe la votacion
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados sin representantes")
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').candiancy.representanteDelegadoPrimero,None)
+        votacion_primaria_sin_representantes.delete()
+
+    def test_delete_voting_primary(self):
+        num_votaciones= Voting.objects.count()
+        candidatura_completa= self.create_candidatura("completo")
+        vot= self.create_primary_voting("Votaciones de delegados",candidatura_completa)
+        #Comprobamos que crea correctamente la votacion
+        numVotacionesTrasCrear=Voting.objects.count()
+        self.assertTrue(numVotacionesTrasCrear>num_votaciones)
+
+        #Comprobamos que exista esa votacion y la borramos
+        self.assertEqual(Voting.objects.get(tipo='Primary Voting').name,"Votaciones de delegados")
+        vot.delete()
+        numVotacionesTrasBorrar=Voting.objects.count()
+        self.assertTrue(numVotacionesTrasBorrar==num_votaciones)
+    def test_create_primary_voting_API(self):
+        '''test: deja crear bien las votaciones primarias desde la API'''
+        c = self.create_candidatura_w_voting_users()
+        self.login()
+        data = {'action': 'start'}
+        response = self.client.post('/voting/candidaturaprimaria/{}/'.format(c.pk), data, format='json')
+        self.assertEqual(response.status_code, 200)
+        q = Question.objects.filter(desc='elige representante de máster de la candidatura "Candidatura con votingusers"')
+        self.assertEqual(q.exists(), True)
+        CreadoRepresentanteMaster =QuestionOption.objects.filter(question = q.all()[0], option="representante de master curso").exists()
+        self.assertEqual(CreadoRepresentanteMaster, True)
+
+    def test_create_primary_voting_API_Fail(self):
+        '''test: falla al crear desde la API porque ya se han hecho las primarias y hay representante'''
+        c = self.create_candidatura_w_voting_users()
+        vu = VotingUser.objects.filter(candidatura=c, curso="PRIMERO").all()[0]
+        c.representanteDelegadoPrimero=vu.user
+        c.save()
+        self.login()
+        data = {'action': 'start'}
+        response = self.client.post('/voting/candidaturaprimaria/{}/'.format(c.pk), data, format='json')
+        self.assertEqual(response.status_code, 400)
+        
+        #FIN TEST VOTACION PRIMARIA
 class VotingTestCase(BaseTestCase):
 
     def setUp(self):
@@ -361,6 +522,7 @@ class VotingTestCase(BaseTestCase):
         data = {'action': 'tally'}
         response = self.client.put('/voting/{}/'.format(voting.pk), data, format='json')
         self.assertEqual(response.status_code, 400)
+
         self.assertEqual(response.json(), 'Voting already tallied')
 
 class PrimaryVotingTestCase(StaticLiveServerTestCase):
@@ -907,3 +1069,4 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, ".error").click()
 
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
+
