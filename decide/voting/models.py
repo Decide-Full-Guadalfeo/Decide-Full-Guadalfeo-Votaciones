@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from base import mods
 from base.models import Auth, Key
 from census.models import Census
+import re
 
 
 class Question(models.Model):
@@ -136,6 +137,9 @@ class Voting(models.Model):
         tally = self.tally
         questions= self.question.all()
         tipo = self.tipo
+        primaria=False
+        if tipo=='Primary voting':
+            primaria=True
         tituloV = self.name
         desc = self.desc
         fecha_inicio = self.start_date.isoformat(' ')
@@ -315,7 +319,29 @@ class Voting(models.Model):
                 'media_edad_votantes': media_edad_votantes_pregunta,
                 'opts': opts.sort(reverse=True, key=ordenaVotos)
                 })
-                
+            if primaria:
+                ganador=re.search('\d+',opts[0]['nombre'])
+                if ganador:
+                    id_ganador=ganador.group(0)
+                if 'primero' in titulo:
+                    rep_primero=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoPrimero=rep_primero)
+                elif 'segundo' in titulo:
+                    rep_segundo=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoSegundo=rep_segundo)
+                elif 'tercero' in titulo:
+                    rep_tercero=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoTercero=rep_tercero)
+                elif 'cuarto' in titulo:
+                    rep_cuarto=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoCuarto=rep_cuarto)
+                elif 'máster' in titulo:
+                    rep_master=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoMaster=rep_master)
+                else:
+                    rep_delegado_centro=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(delegadoCentro=rep_delegado_centro)
+                    
         data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': tituloV, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'n_votantes': n_votantes , 'n_hombres_censo': n_hombres_censo , 'n_votantes_m': n_votantes_m , 'n_mujeres_censo': n_mujeres_censo , 'n_votantes_f': n_votantes_f , 'media_edad_votantes': media_edad_votantes , 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
