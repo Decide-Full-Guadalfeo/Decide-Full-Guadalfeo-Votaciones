@@ -165,8 +165,9 @@ class Voting(models.Model):
         
 
         preguntas = []
-        opts = []
+        
         for pregunta in questions:
+            opts = []
             aux = False
             titulo = pregunta.desc
             options = pregunta.options.all()
@@ -175,28 +176,30 @@ class Voting(models.Model):
                 aux = True
             for opt in options:
                 voto_curso= []
-                if aux:
-                    if isinstance(tally, list):
+                if isinstance(tally, list):
                         lvotos_opcion= [vote for vote in tally if titulo in vote and vote[titulo]==opt.number]
                         votes = len(lvotos_opcion)
+                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'HOMBRE'])
+                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'MUJER'])
+                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
+                else:
+                        votes = 0
+                        n_votantes_m_opcion = 0
+                        n_votantes_f_opcion = 0
+                        media_edad_votantes_opcion = 0.0
+                if aux:
+                    if isinstance(tally, list):
                         n_votos_primero = len([i for i in lvotos_opcion if i['year']=='PRIMERO'])
                         n_votos_segundo = len([i for i in lvotos_opcion if i['year']=='SEGUNDO'])
                         n_votos_tercero = len([i for i in lvotos_opcion if i['year']=='TERCERO'])
                         n_votos_cuarto = len([i for i in lvotos_opcion if i['year']=='CUARTO'])
                         n_votos_master = len([i for i in lvotos_opcion if i['year']=='MASTER'])
-                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'HOMBRE'])
-                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'MUJER'])
-                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
                     else:
-                        votes = 0
                         n_votos_primero = 0
                         n_votos_segundo = 0
                         n_votos_tercero = 0
                         n_votos_cuarto = 0
                         n_votos_master = 0
-                        n_votantes_m_opcion = 0
-                        n_votantes_f_opcion = 0
-                        media_edad_votantes_opcion = 0.0
                     voto_curso.append({
                     'primero': n_votos_primero,
                     'segundo': n_votos_segundo,
