@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from base import mods
 from base.models import Auth, Key
 from census.models import Census
+import re
 
 
 class Question(models.Model):
@@ -136,6 +137,9 @@ class Voting(models.Model):
         tally = self.tally
         questions= self.question.all()
         tipo = self.tipo
+        primaria=False
+        if tipo=='Primary voting':
+            primaria=True
         tituloV = self.name
         desc = self.desc
         fecha_inicio = self.start_date.isoformat(' ')
@@ -161,8 +165,9 @@ class Voting(models.Model):
         
 
         preguntas = []
-        opts = []
+        
         for pregunta in questions:
+            opts = []
             aux = False
             titulo = pregunta.desc
             options = pregunta.options.all()
@@ -171,28 +176,30 @@ class Voting(models.Model):
                 aux = True
             for opt in options:
                 voto_curso= []
-                if aux:
-                    if isinstance(tally, list):
+                if isinstance(tally, list):
                         lvotos_opcion= [vote for vote in tally if titulo in vote and vote[titulo]==opt.number]
                         votes = len(lvotos_opcion)
+                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'HOMBRE'])
+                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'MUJER'])
+                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
+                else:
+                        votes = 0
+                        n_votantes_m_opcion = 0
+                        n_votantes_f_opcion = 0
+                        media_edad_votantes_opcion = 0.0
+                if aux:
+                    if isinstance(tally, list):
                         n_votos_primero = len([i for i in lvotos_opcion if i['year']=='PRIMERO'])
                         n_votos_segundo = len([i for i in lvotos_opcion if i['year']=='SEGUNDO'])
                         n_votos_tercero = len([i for i in lvotos_opcion if i['year']=='TERCERO'])
                         n_votos_cuarto = len([i for i in lvotos_opcion if i['year']=='CUARTO'])
                         n_votos_master = len([i for i in lvotos_opcion if i['year']=='MASTER'])
-                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'HOMBRE'])
-                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'MUJER'])
-                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
                     else:
-                        votes = 0
                         n_votos_primero = 0
                         n_votos_segundo = 0
                         n_votos_tercero = 0
                         n_votos_cuarto = 0
                         n_votos_master = 0
-                        n_votantes_m_opcion = 0
-                        n_votantes_f_opcion = 0
-                        media_edad_votantes_opcion = 0.0
                     voto_curso.append({
                     'primero': n_votos_primero,
                     'segundo': n_votos_segundo,
@@ -315,7 +322,29 @@ class Voting(models.Model):
                 'media_edad_votantes': media_edad_votantes_pregunta,
                 'opts': opts.sort(reverse=True, key=ordenaVotos)
                 })
-                
+            if primaria:
+                ganador=re.search('\d+',opts[0]['nombre'])
+                if ganador:
+                    id_ganador=ganador.group(0)
+                if 'primero' in titulo:
+                    rep_primero=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoPrimero=rep_primero)
+                elif 'segundo' in titulo:
+                    rep_segundo=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoSegundo=rep_segundo)
+                elif 'tercero' in titulo:
+                    rep_tercero=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoTercero=rep_tercero)
+                elif 'cuarto' in titulo:
+                    rep_cuarto=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoCuarto=rep_cuarto)
+                elif 'máster' in titulo:
+                    rep_master=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoMaster=rep_master)
+                else:
+                    rep_delegado_centro=User.objects.get(id_ganador)
+                    Candidatura.objects.get(id=self.candiancy.id).update(delegadoCentro=rep_delegado_centro)
+                    
         data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': tituloV, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'n_votantes': n_votantes , 'n_hombres_censo': n_hombres_censo , 'n_votantes_m': n_votantes_m , 'n_mujeres_censo': n_mujeres_censo , 'n_votantes_f': n_votantes_f , 'media_edad_votantes': media_edad_votantes , 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
