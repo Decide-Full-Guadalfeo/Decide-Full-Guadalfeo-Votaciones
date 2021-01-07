@@ -539,6 +539,65 @@ class VotingTestCase(BaseTestCase):
 
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 201)
+    
+    def test_create_PrimaryVotingWithoutCandidacy_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV"
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0],'Primary votings must have a candidacy')
+
+    def test_create_GeneralVotingWithCandidacy_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "GV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0],'General votings must not have a candidacy')
 
     def test_update_voting(self):
         voting = self.create_voting()
