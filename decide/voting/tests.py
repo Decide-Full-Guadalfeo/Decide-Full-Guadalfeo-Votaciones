@@ -347,13 +347,20 @@ class VotingTestCase(BaseTestCase):
         return k.encrypt(msg)
 
     def create_voting(self):
-        q = Question(desc='test question')
+        c = Candidatura(nombre="Candidatura prueba")
+        c.save()
+        q = Question(desc="test question")
         q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-        v = Voting(name='test voting', question=q)
+        opt = QuestionOption(question=q, option="test")
+        opt.save()
+        q2 = Question(desc="test question 2")
+        q2.save()
+        opt2 = QuestionOption(question=q2, option="test2")
+        opt2.save()
+        v = Voting(name="Test voting",tipo='PV', candiancy=c)
         v.save()
+        v.question.add(q)
+        v.question.add(q2)
 
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
@@ -382,20 +389,21 @@ class VotingTestCase(BaseTestCase):
         voter = voters.pop()
 
         clear = {}
-        for opt in v.question.options.all():
-            clear[opt.number] = 0
-            for i in range(random.randint(0, 5)):
-                a, b = self.encrypt_msg(opt.number, v)
-                data = {
-                    'voting': v.id,
-                    'voter': voter.voter_id,
-                    'vote': { 'a': a, 'b': b },
-                }
-                clear[opt.number] += 1
-                user = self.get_or_create_user(voter.voter_id)
-                self.login(user=user.username)
-                voter = voters.pop()
-                mods.post('store', json=data)
+        for q in v.question.all():
+            for opt in q.options.all():
+                clear[opt.number] = 0
+                for i in range(random.randint(0, 5)):
+                    a, b = self.encrypt_msg(opt.number, v)
+                    data = {
+                        'voting': v.id,
+                        'voter': voter.voter_id,
+                        'vote': { 'a': a, 'b': b },
+                    }
+                    clear[opt.number] += 1
+                    user = self.get_or_create_user(voter.voter_id)
+                    self.login(user=user.username)
+                    voter = voters.pop()
+                    mods.post('store', json=data)
         return clear
 
     def test_complete_voting(self):
@@ -408,15 +416,19 @@ class VotingTestCase(BaseTestCase):
 
         clear = self.store_votes(v)
 
+        v.end_date = timezone.now()
+        v.save()
+
         self.login()  # set token
         v.tally_votes(self.token)
 
         tally = v.tally
         tally.sort()
         tally = {k: len(list(x)) for k, x in itertools.groupby(tally)}
-
-        for q in v.question.options.all():
-            self.assertEqual(tally.get(q.number, 0), clear.get(q.number, 0))
+        
+        for q in v.question.all():
+            for opt in q.options.all():
+               self.assertEqual(tally.get(opt.number, 0), clear.get(opt.number, 0))
 
         for q in v.postproc:
             self.assertEqual(tally.get(q["number"], 0), q["votes"])
@@ -437,11 +449,93 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 400)
 
         data = {
-            'name': 'Example',
-            'desc': 'Description example',
-            'question': 'I want a ',
-            'question_opt': ['cat', 'dog', 'horse']
+        "name": "Votaciones de la candidatura \"Candidatura de prueba\"",
+        "desc": "Elige a los representantes de tu candidatura.",
+        "question": [
+            {
+                "desc": "elige representante de primero de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de segundo de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de tercero de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de cuarto de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de máster de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de delegado de centro de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
         }
+    }
 
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 201)
