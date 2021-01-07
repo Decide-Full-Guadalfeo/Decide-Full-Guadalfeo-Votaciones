@@ -130,7 +130,7 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
             alumnos_candidatura_sin_cargo = VotingUser.objects.filter(candidatura=c)
             i = 0
             for alumno in alumnos_candidatura_sin_cargo:
-                if (alumno.user!=c.representanteDelegadoPrimero and alumno!=c.representanteDelegadoSegundo and alumno!=c.representanteDelegadoTercero and alumno!=c.representanteDelegadoCuarto and alumno!=c.representanteDelegadoMaster and alumno!=c.delegadoCentro):
+                if (alumno.user!=c.representanteDelegadoPrimero and alumno.user!=c.representanteDelegadoSegundo and alumno.user!=c.representanteDelegadoTercero and alumno.user!=c.representanteDelegadoCuarto and alumno.user!=c.representanteDelegadoMaster and alumno.user!=c.delegadoCentro):
                     qo7 = QuestionOption(question=q7, number=(contador+i), option=alumno.user.first_name
                                     + ' ' + alumno.user.last_name + ' / ' + str(alumno.user.id))
                     qo7.save()
