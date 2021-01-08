@@ -13,9 +13,14 @@ import datetime
 
 def start(modeladmin, request, queryset):
     for v in queryset.all():
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
+        if v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
+            messages.add_message(request, messages.ERROR, "La votación primaria "+v.name+" debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro.")
+        elif v.tipo=='GV' and Question.objects.filter(voting=v).count()!=7:
+            messages.add_message(request, messages.ERROR, "La votación general "+v.name+" debe tener 7 preguntas, 1 para cada curso, otra para el delegado de centro y otra para la delegación de alumnos.")
+        else:
+            v.create_pubkey()
+            v.start_date = timezone.now()
+            v.save()
 
 
 def stop(ModelAdmin, request, queryset):
