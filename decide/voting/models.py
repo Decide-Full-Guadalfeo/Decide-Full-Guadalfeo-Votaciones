@@ -97,7 +97,7 @@ class Voting(models.Model):
         # gettings votes from store
         votes = mods.get('store', params={'voting_id': self.id}, HTTP_AUTHORIZATION='Token ' + token)
         # anon votes
-        return [[i['a'], i['b']] for i in votes]
+        return [[i['data']] for i in votes]
 
     def tally_votes(self, token=''):
         '''
@@ -105,29 +105,28 @@ class Voting(models.Model):
         '''
 
         votes = self.get_votes(token)
-
         auth = self.auths.first()
         shuffle_url = "/shuffle/{}/".format(self.id)
         decrypt_url = "/decrypt/{}/".format(self.id)
         auths = [{"name": a.name, "url": a.url} for a in self.auths.all()]
 
-        # first, we do the shuffle
-        data = { "msgs": votes }
-        response = mods.post('mixnet', entry_point=shuffle_url, baseurl=auth.url, json=data,
-                response=True)
-        if response.status_code != 200:
-            # TODO: manage error
-            pass
+        
+        res = []
 
-        # then, we can decrypt that
-        data = {"msgs": response.json()}
-        response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
-                response=True)
+        for vt in votes:
+            for i,opt in enumerate(vt[0]):
+                aux = vt[0]
+                #  decrypt 
+                data = {"msgs": aux[opt]}
+                response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
+                        response=True)
+                        
+                if response.status_code != 200:
+                    # TODO: manage error
+                    pass
+                
 
-        if response.status_code != 200:
-            # TODO: manage error
-            pass
-        self.tally = response.json()
+        self.tally = res
         self.save()
 
         self.do_postproc()
