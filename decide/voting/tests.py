@@ -118,27 +118,27 @@ class CandidaturaTestCase(BaseTestCase):
 
         u1 = User(username="firstVoter", first_name="representante de",last_name="primer curso")
         u1.save()
-        v1 = VotingUser(user=u1,dni="47348063C",sexo="HOMBRE",titulo="SOFTWARE",curso="PRIMERO", candidatura=c)
+        v1 = VotingUser(user=u1,dni="47348063C",sexo="Man",titulo="Software",curso="First", candidatura=c)
         v1.save()
 
         u2 = User(username="secondVoter", first_name="representante de",last_name="segundo curso")
         u2.save()
-        v2 = VotingUser(user=u2,dni="47348063F",sexo="MUJER",titulo="SOFTWARE",curso="SEGUNDO", candidatura=c)
+        v2 = VotingUser(user=u2,dni="47348063F",sexo="Woman",titulo="Software",curso="Second", candidatura=c)
         v2.save()
 
         u3 = User(username="third", first_name="representante de",last_name="tercer curso")
         u3.save()
-        v3 = VotingUser(user=u3,dni="47348068C",sexo="HOMBRE",titulo="SOFTWARE",curso="TERCERO", candidatura=c)
+        v3 = VotingUser(user=u3,dni="47348068C",sexo="Man",titulo="Software",curso="Third", candidatura=c)
         v3.save()
 
         u4 = User(username="fourth", first_name="representante de",last_name="cuarto curso")
         u4.save()
-        v4 = VotingUser(user=u4,dni="47347963C",sexo="HOMBRE",titulo="SOFTWARE",curso="CUARTO", candidatura=c)
+        v4 = VotingUser(user=u4,dni="47347963C",sexo="Man",titulo="Software",curso="Fourth", candidatura=c)
         v4.save()
 
         u5 = User(username="master", first_name="representante de",last_name="master curso")
         u5.save()
-        v5 = VotingUser(user=u5,dni="47297963C",sexo="HOMBRE",titulo="SOFTWARE",curso="MASTER", candidatura=c)
+        v5 = VotingUser(user=u5,dni="47297963C",sexo="Man",titulo="Software",curso="Master", candidatura=c)
         v5.save()
 
         return c
@@ -211,7 +211,7 @@ class CandidaturaTestCase(BaseTestCase):
         q1= Question(desc="Elige representante de primero de la candidatura")
         q1.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+        for usr in usuarios_candidatura.filter(curso="First"):
             qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -219,7 +219,7 @@ class CandidaturaTestCase(BaseTestCase):
         q2= Question(desc="Elige representante de segundo de la candidatura")
         q2.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+        for usr in usuarios_candidatura.filter(curso="Second"):
             qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -227,7 +227,7 @@ class CandidaturaTestCase(BaseTestCase):
         q3= Question(desc="Elige representante de tercero de la candidatura")
         q3.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+        for usr in usuarios_candidatura.filter(curso="Third"):
             qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -235,7 +235,7 @@ class CandidaturaTestCase(BaseTestCase):
         q4= Question(desc="Elige representante de cuarto de la candidatura")
         q4.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
             qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -243,7 +243,7 @@ class CandidaturaTestCase(BaseTestCase):
         q5= Question(desc="Elige representante de master de la candidatura")
         q5.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="MASTER"):
+        for usr in usuarios_candidatura.filter(curso="Master"):
             qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -322,7 +322,7 @@ class CandidaturaTestCase(BaseTestCase):
     def test_create_primary_voting_API_Fail(self):
         '''test: falla al crear desde la API porque ya se han hecho las primarias y hay representante'''
         c = self.create_candidatura_w_voting_users()
-        vu = VotingUser.objects.filter(candidatura=c, curso="PRIMERO").all()[0]
+        vu = VotingUser.objects.filter(candidatura=c, curso="First").all()[0]
         c.representanteDelegadoPrimero=vu.user
         c.save()
         self.login()

@@ -33,36 +33,36 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
         q1.save()
         i=1
         from authentication.models import VotingUser
-        usuarios_candidatura = VotingUser.objects.filter(candidatura=c)    
-        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=c)
+        for usr in usuarios_candidatura.filter(curso="First"):
             qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
         q2.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+        for usr in usuarios_candidatura.filter(curso="Second"):
             qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
         q3.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+        for usr in usuarios_candidatura.filter(curso="Third"):
             qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
         q4.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
             qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
         q5.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="MASTER"):
+        for usr in usuarios_candidatura.filter(curso="Master"):
             qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
