@@ -138,7 +138,7 @@ class Voting(models.Model):
         questions= self.question.all()
         tipo = self.tipo
         primaria=False
-        if tipo=='Primary voting':
+        if tipo=='PV':
             primaria=True
         tituloV = self.name
         desc = self.desc
@@ -150,17 +150,17 @@ class Voting(models.Model):
         n_personas_censo = votantes.count()
         if isinstance(tally, list):
             n_votantes = len(tally)
-            n_votantes_m = len([i for i in tally if i['sex']== 'HOMBRE'])
-            n_votantes_f = len([i for i in tally if i['sex']== 'MUJER'])
+            n_votantes_m = len([i for i in tally if i['sex']== 'Man'])
+            n_votantes_f = len([i for i in tally if i['sex']== 'Woman'])
             media_edad_votantes = float(sum(i['age'] for i in tally)/n_votantes)
         else:
             n_votantes = 0
             n_votantes_m = 0
             n_votantes_f = 0
             media_edad_votantes = 0.0
-        n_hombres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='HOMBRE').count()
+        n_hombres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='Man').count()
         
-        n_mujeres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='MUJER').count()
+        n_mujeres_censo = VotingUser.objects.filter(user__in=censados).filter(sexo='Woman').count()
         
         
 
@@ -177,11 +177,14 @@ class Voting(models.Model):
             for opt in options:
                 voto_curso= []
                 if isinstance(tally, list):
-                        lvotos_opcion= [vote for vote in tally if titulo in vote and vote[titulo]==opt.number]
-                        votes = len(lvotos_opcion)
-                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'HOMBRE'])
-                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'MUJER'])
-                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
+                        lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
+                        votes =len(lvotos_opcion)
+                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'Man'])
+                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'Woman'])
+                        if votes==0:
+                            media_edad_votantes_opcion=0.0
+                        else:
+                            media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
                 else:
                         votes = 0
                         n_votantes_m_opcion = 0
@@ -189,11 +192,11 @@ class Voting(models.Model):
                         media_edad_votantes_opcion = 0.0
                 if aux:
                     if isinstance(tally, list):
-                        n_votos_primero = len([i for i in lvotos_opcion if i['year']=='PRIMERO'])
-                        n_votos_segundo = len([i for i in lvotos_opcion if i['year']=='SEGUNDO'])
-                        n_votos_tercero = len([i for i in lvotos_opcion if i['year']=='TERCERO'])
-                        n_votos_cuarto = len([i for i in lvotos_opcion if i['year']=='CUARTO'])
-                        n_votos_master = len([i for i in lvotos_opcion if i['year']=='MASTER'])
+                        n_votos_primero = len([i for i in lvotos_opcion if i['year']=='First'])
+                        n_votos_segundo = len([i for i in lvotos_opcion if i['year']=='Second'])
+                        n_votos_tercero = len([i for i in lvotos_opcion if i['year']=='Third'])
+                        n_votos_cuarto = len([i for i in lvotos_opcion if i['year']=='Fourth'])
+                        n_votos_master = len([i for i in lvotos_opcion if i['year']=='Master'])
                     else:
                         n_votos_primero = 0
                         n_votos_segundo = 0
@@ -226,85 +229,98 @@ class Voting(models.Model):
                     'votes': votes
                     })
 
-            def ordenaVotos(d):
-                return d['votes']
             if aux:
                 preguntas.append({
                 'titulo': titulo,
                 'numero_candidatos': numero_candidatos,
-                'opts': opts.sort(reverse=True, key=ordenaVotos)
+                'opts': sorted(opts,key = lambda i: i['votes'],reverse=True)
                 })
             else:
                 if 'primero' in titulo:
-                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').count()
-                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').filter(sexo='HOMBRE').count()
-                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='PRIMERO').filter(sexo='MUJER').count()
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').filter(sexo='Man').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').filter(sexo='Woman').count()
                     if isinstance(tally, list):
-                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='PRIMERO']
+                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='First']
                         n_votantes_pregunta = len(lvotos_pregunta)
-                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
+                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        if n_votantes_pregunta==0:
+                            media_edad_votantes_pregunta= 0.0
+                        else:
+                            media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
                     else:
                         n_votantes_pregunta = 0
                         n_votantes_m_pregunta = 0
                         n_votantes_f_pregunta = 0
                         media_edad_votantes_pregunta = 0
                 elif 'segundo' in titulo:
-                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').count()
-                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').filter(sexo='HOMBRE').count()
-                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='SEGUNDO').filter(sexo='MUJER').count()
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').filter(sexo='Man').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').filter(sexo='Woman').count()
                     if isinstance(tally, list):
-                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='SEGUNDO']
+                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Second']
                         n_votantes_pregunta = len(lvotos_pregunta)
-                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
+                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        if n_votantes_pregunta==0:
+                            media_edad_votantes_pregunta= 0.0
+                        else:
+                            media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
                     else:
                         n_votantes_pregunta = 0
                         n_votantes_m_pregunta = 0
                         n_votantes_f_pregunta = 0
                         media_edad_votantes_pregunta = 0
                 elif 'tercero' in titulo:
-                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').count()
-                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').filter(sexo='HOMBRE').count()
-                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='TERCERO').filter(sexo='MUJER').count()
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').filter(sexo='Man').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').filter(sexo='Woman').count()
                     if isinstance(tally, list):
-                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='TERCERO']
+                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Third']
                         n_votantes_pregunta = len(lvotos_pregunta)
-                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
+                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        if n_votantes_pregunta==0:
+                            media_edad_votantes_pregunta= 0.0
+                        else:
+                            media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
                     else:
                         n_votantes_pregunta = 0
                         n_votantes_m_pregunta = 0
                         n_votantes_f_pregunta = 0
                         media_edad_votantes_pregunta = 0
                 elif 'cuarto' in titulo:
-                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').count()
-                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').filter(sexo='HOMBRE').count()
-                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='CUARTO').filter(sexo='MUJER').count()
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').filter(sexo='Man').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').filter(sexo='Woman').count()
                     if isinstance(tally, list):
-                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='CUARTO']
+                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Fourth']
                         n_votantes_pregunta = len(lvotos_pregunta)
-                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
+                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        if n_votantes_pregunta==0:
+                            media_edad_votantes_pregunta= 0.0
+                        else:
+                            media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
                     else:
                         n_votantes_pregunta = 0
                         n_votantes_m_pregunta = 0
                         n_votantes_f_pregunta = 0
                         media_edad_votantes_pregunta = 0
                 else:
-                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').count()
-                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').filter(sexo='HOMBRE').count()
-                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='MASTER').filter(sexo='MUJER').count()
+                    n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').count()
+                    nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').filter(sexo='Man').count()
+                    nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').filter(sexo='Woman').count()
                     if isinstance(tally, list):
-                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='MASTER']
+                        lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Master']
                         n_votantes_pregunta = len(lvotos_pregunta)
-                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'HOMBRE'])
-                        media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
+                        n_votantes_m_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        n_votantes_f_pregunta = len([i for i in lvotos_pregunta if i['sex']== 'Man'])
+                        if n_votantes_pregunta==0:
+                            media_edad_votantes_pregunta= 0.0
+                        else:
+                            media_edad_votantes_pregunta = float(sum(i['age'] for i in lvotos_pregunta)/n_votantes_pregunta)
                     else:
                         n_votantes_pregunta = 0
                         n_votantes_m_pregunta = 0
@@ -320,31 +336,38 @@ class Voting(models.Model):
                 'n_mujeres_censo': nm_censo_pregunta,
                 'n_votantes_f': n_votantes_f_pregunta,
                 'media_edad_votantes': media_edad_votantes_pregunta,
-                'opts': opts.sort(reverse=True, key=ordenaVotos)
+                'opts': sorted(opts,key = lambda i: i['votes'],reverse=True)
                 })
             if primaria:
                 ganador=re.search('\d+',opts[0]['nombre'])
                 if ganador:
                     id_ganador=ganador.group(0)
-                if 'primero' in titulo:
-                    rep_primero=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoPrimero=rep_primero)
-                elif 'segundo' in titulo:
-                    rep_segundo=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoSegundo=rep_segundo)
-                elif 'tercero' in titulo:
-                    rep_tercero=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoTercero=rep_tercero)
-                elif 'cuarto' in titulo:
-                    rep_cuarto=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoCuarto=rep_cuarto)
-                elif 'máster' in titulo:
-                    rep_master=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(representanteDelegadoMaster=rep_master)
-                else:
-                    rep_delegado_centro=User.objects.get(id_ganador)
-                    Candidatura.objects.get(id=self.candiancy.id).update(delegadoCentro=rep_delegado_centro)
-                    
+                    c= Candidatura.objects.get(id=self.candiancy.id)
+                    if 'primero' in titulo:
+                        rep_primero=User.objects.get(id=id_ganador)
+                        c.representanteDelegadoPrimero=rep_primero
+                        c.save()
+
+                    elif 'segundo' in titulo:
+                        rep_segundo=User.objects.get(id=id_ganador)
+                        c.representanteDelegadoSegundo=rep_segundo
+                        c.save()
+                    elif 'tercero' in titulo:
+                        rep_tercero=User.objects.get(id=id_ganador)
+                        c.representanteDelegadoTercero=rep_tercero
+                        c.save()
+                    elif 'cuarto' in titulo:
+                        rep_cuarto=User.objects.get(id=id_ganador)
+                        c.representanteDelegadoCuarto=rep_cuarto
+                        c.save()
+                    elif 'máster' in titulo:
+                        rep_master=User.objects.get(id=id_ganador)
+                        c.representanteDelegadoMaster=rep_master
+                        c.save()
+                    else:
+                        rep_delegado_centro=User.objects.get(id=id_ganador)
+                        c.delegadoCentro=rep_delegado_centro
+                        c.save()
         data = { 'type': 'IDENTITY', 'id': id_votacion, 'titulo': tituloV, 'desc': desc, 'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin, 'tipo': tipo, 'n_personas_censo': n_personas_censo, 'n_votantes': n_votantes , 'n_hombres_censo': n_hombres_censo , 'n_votantes_m': n_votantes_m , 'n_mujeres_censo': n_mujeres_censo , 'n_votantes_f': n_votantes_f , 'media_edad_votantes': media_edad_votantes , 'preguntas': preguntas }
         postp = mods.post('postproc', json=data)
 
