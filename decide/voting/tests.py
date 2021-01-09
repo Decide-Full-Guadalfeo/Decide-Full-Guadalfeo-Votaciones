@@ -1152,10 +1152,35 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
         super().setUp()    
+
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
+
+    def test_update_generalVoting(self):
+        '''test: se puede actualizar una votacion con tipo general'''
+        v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
+        self.assertEqual(v.name, 'Votacion de prueba')
+        self.assertEqual(v.desc, 'Descripcion de prueba')
+        # Actualizamos la votación
+        v.name='Nuevo nombre'
+        v.desc='Nueva descripcion'
+        v.save()
+        # Y vemos que se han aplicado los cambios
+        self.assertEqual(v.name, 'Nuevo nombre',)
+        self.assertEqual(v.desc, 'Nueva descripcion')
+        v.delete()
+
+    def test_delete_generalVoting(self):
+        '''test: se puede borrar una votacion con tipo general'''
+        v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
+        v_pk = v.pk
+        self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 1)
+        # Borramos la votacion
+        v.delete()
+        # Y comprobamos que se ha borrado 
+        self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 0)
   
     def test_view_CreateGeneralVotingOneCandiancyCorrect(self):
         '''test: se crea correctamente la votación general con una candidatura que ha hecho primarias'''
