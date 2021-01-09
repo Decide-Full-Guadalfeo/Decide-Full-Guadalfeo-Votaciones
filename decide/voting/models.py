@@ -185,7 +185,10 @@ class Voting(models.Model):
             n_votantes = len(tally)
             n_votantes_m = len([i for i in tally if i['sex']== 'Man'])
             n_votantes_f = len([i for i in tally if i['sex']== 'Woman'])
-            media_edad_votantes = float(sum(i['age'] for i in tally)/n_votantes)
+            if n_votantes==0:
+                media_edad_votantes = 0.0
+            else:
+                media_edad_votantes = float(sum(i['age'] for i in tally)/n_votantes)
         else:
             n_votantes = 0
             n_votantes_m = 0
