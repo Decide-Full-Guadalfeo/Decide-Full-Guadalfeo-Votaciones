@@ -8,6 +8,7 @@ from base import mods
 from base.models import Auth, Key
 from census.models import Census
 import re
+import sys
 
 
 class Question(models.Model):
@@ -97,7 +98,7 @@ class Voting(models.Model):
         # gettings votes from store
         votes = mods.get('store', params={'voting_id': self.id}, HTTP_AUTHORIZATION='Token ' + token)
         # anon votes
-        return [[i['data']] for i in votes]
+        return [i['data'] for i in votes]
 
     def tally_votes(self, token=''):
         '''
@@ -105,27 +106,60 @@ class Voting(models.Model):
         '''
 
         votes = self.get_votes(token)
+        print('votes',votes)
         auth = self.auths.first()
         shuffle_url = "/shuffle/{}/".format(self.id)
         decrypt_url = "/decrypt/{}/".format(self.id)
         auths = [{"name": a.name, "url": a.url} for a in self.auths.all()]
 
-        
         res = []
-
         for vt in votes:
-            for i,opt in enumerate(vt[0]):
-                aux = vt[0]
+            # Hacemos una copia para modificarla
+            aux = vt.copy()
+            for i in aux:
+                a = int(aux[i]['a'])
+                b = int(aux[i]['b'])
+                    
                 #  decrypt 
-                data = {"msgs": aux[opt]}
+                data = {"msgs": [[a,b]]}
                 response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
                         response=True)
-                        
+                aux[i] = response.json()[0]
                 if response.status_code != 200:
                     # TODO: manage error
                     pass
+                resp = response.json()[0]
+                if i=='sex':
+                    if resp == 1:
+                        aux[i]='Man'
+                    if resp == 2:
+                        aux[i]='Woman'
+                    if resp == 3:
+                        aux[i]='Other'
+                elif i=='grade':
+                    if resp == 1:
+                        aux[i]='Software'
+                    if resp == 2:
+                        aux[i]='Computer Technology'
+                    if resp == 3:
+                        aux[i]='Information Technology'
+                    if resp == 4:
+                        aux[i]='Health'
+                elif i=='year':
+                    if resp == 1:
+                        aux[i]='First'
+                    if resp == 2:
+                        aux[i]='Second'
+                    if resp == 3:
+                        aux[i]='Third'
+                    if resp == 4:
+                        aux[i]='Fourth'
+                    if resp == 5:
+                        aux[i]='Master'
+                else:
+                    aux[i] = resp
                 
-
+            res.append(aux)
         self.tally = res
         self.save()
 
