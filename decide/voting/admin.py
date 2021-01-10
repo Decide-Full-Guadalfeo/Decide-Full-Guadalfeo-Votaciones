@@ -81,7 +81,7 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 
 
         voting = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
-        , tipo="Primary voting", candiancy=c)
+        , tipo="PV", candiancy=c)
         voting.save()
         voting.question.add(q1, q2, q3, q4, q5, q6)
 
@@ -94,7 +94,7 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 realizarEleccionesPrimarias.short_description="Realizar las votaciones primarias de candidaturas seleccionadas"
 
 def realizarEleccionGeneral(ModelAdmin, request, queryset):
-    numero_votaciones_generales = Voting.objects.filter(tipo='General voting').count()
+    numero_votaciones_generales = Voting.objects.filter(tipo='GV').count()
     indice_votacion = str(numero_votaciones_generales + 1)
     q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
     q1.save()
@@ -142,7 +142,7 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
                     i+=1
             contador += 1
         
-        votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='General voting')
+        votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='GV')
         votacion.save()
         votacion.question.add(q1, q2, q3, q4, q5, q6, q7)
 
