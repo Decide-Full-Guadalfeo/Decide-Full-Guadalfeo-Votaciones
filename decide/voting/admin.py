@@ -9,14 +9,49 @@ from .models import Candidatura
 from .filters import StartedFilter
 from authentication.models import VotingUser
 import datetime
+import re
+from django.contrib.auth.models import User
 
+GENERAL_QUESTIONS = ['Elige al delegado de primero', 'Elige al delegado de segundo', 'Elige al delegado de tercero', 'Elige al delegado de cuarto','Elige al delegado del master', 'Elige al delegado al centro', 'Elige a los miembros de delegación de alumnos']
+PRIMARY_QUESTIONS = ['representante de primero', 'representante de segundo', 'representante de tercero', 'representante de cuarto', 'representante de máster', 'representante de delegado de centro']
+
+def checkVotingQuestionNames(v, descs):
+    questions = Question.objects.filter(voting=v)
+    for q, d in zip(questions, descs):
+        if d not in q.desc:
+            return False
+    return True
+
+def checkVotingQuestionOptions(v):
+    questions = Question.objects.filter(voting=v)
+    for q in questions:
+        opts = QuestionOption.objects.filter(question=q)
+        if len(opts)==0:
+            return False
+        else:
+            for opt in opts:
+                desc = opt.option
+                if re.match('\D+ \/\ \d+',desc):
+                    user_id = desc.split('/')[1].strip()
+                    if User.objects.filter(id = user_id).count()!=1:
+                        return False
+                else:
+                    return False
+    return True
 
 def start(modeladmin, request, queryset):
     for v in queryset.all():
+        print(v.tipo)
         if v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
             messages.add_message(request, messages.ERROR, "La votación primaria "+v.name+" debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro.")
+        elif v.tipo=='PV' and checkVotingQuestionNames(v, PRIMARY_QUESTIONS)==False:
+            messages.add_message(request, messages.ERROR, "Las votaciones primarias deben seguir el formato especificado en el manual de usuario. Se recomienda crearlas de forma automatizada desde el panel de candidaturas")
         elif v.tipo=='GV' and Question.objects.filter(voting=v).count()!=7:
             messages.add_message(request, messages.ERROR, "La votación general "+v.name+" debe tener 7 preguntas, 1 para cada curso, otra para el delegado de centro y otra para la delegación de alumnos.")
+        elif v.tipo=='GV' and checkVotingQuestionNames(v, GENERAL_QUESTIONS)==False:
+            messages.add_message(request, messages.ERROR, "Las votaciones generales deben seguir el formato especificado en el manual de usuario. Se recomienda crearlas de forma automatizada desde el panel de candidaturas")
+        elif checkVotingQuestionOptions(v)==False:
+             messages.add_message(request, messages.ERROR, 'Las opciones de las preguntas de la votación deben seguir el formato especificado en el manual de usuario. Se recomienda crear la votación de forma automatizada desde el panel de candidaturas.')
         else:
             v.create_pubkey()
             v.start_date = timezone.now()
