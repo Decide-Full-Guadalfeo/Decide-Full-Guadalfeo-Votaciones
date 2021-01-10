@@ -25,19 +25,18 @@ def checkVotingQuestionNames(v, descs):
 def checkVotingQuestionOptions(v):
     questions = Question.objects.filter(voting=v)
     for q in questions:
-        try:
-            opt = QuestionOption.objects.get(question=q)
-            desc = opt.option
-            if re.match('\D+ \/\ \d+',desc):
-                user_id = desc.split('/')[1].strip()
-                if User.objects.filter(id = user_id).count()!=1:
-                    return False
-            else:
-                return False
-        except:
-            # Si no hay opciones para alguna pregunta saltara una excepcion
+        opts = QuestionOption.objects.filter(question=q)
+        if len(opts)==0:
             return False
-        
+        else:
+            for opt in opts:
+                desc = opt.option
+                if re.match('\D+ \/\ \d+',desc):
+                    user_id = desc.split('/')[1].strip()
+                    if User.objects.filter(id = user_id).count()!=1:
+                        return False
+                else:
+                    return False
     return True
 
 def start(modeladmin, request, queryset):
