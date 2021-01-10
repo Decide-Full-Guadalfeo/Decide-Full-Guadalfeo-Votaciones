@@ -598,6 +598,81 @@ class VotingTestCase(BaseTestCase):
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()[0],'General votings must not have a candidacy')
+    
+    def test_create_GeneralVotingWithoutName_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "GV"
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_PrimaryVotingWithoutName_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_PrimaryVotingWithoutQuestions_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
 
     def test_update_voting(self):
         voting = self.create_voting()
@@ -695,7 +770,28 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
-  
+   def create_candidatura(self):
+        c = Candidatura(nombre="Candidatura para primarias", delegadoCentro=None, representanteDelegadoPrimero=None,
+            representanteDelegadoSegundo=None, representanteDelegadoTercero=None, representanteDelegadoCuarto= None,
+            representanteDelegadoMaster= None)
+        c.save()
+
+        return c
+   def test_update_primaryVoting(self):
+        '''test: se puede actualizar una votacion con tipo primaria'''
+        c=self.create_candidatura()
+        v = Voting.objects.create(desc='Una votación primaria', name="Votación primaria", tipo='PV',candiancy=c)
+        self.assertEqual(v.name, 'Votación primaria')
+        self.assertEqual(v.desc, 'Una votación primaria')
+        # Actualizamos la votación
+        v.name='Se actualizó el nombre'
+        v.desc='Se actualizó la descripción'
+        v.save()
+        # Y vemos que se han aplicado los cambios
+        self.assertEqual(v.name, 'Se actualizó el nombre',)
+        self.assertEqual(v.desc, 'Se actualizó la descripción')
+        v.delete()
+
    def test_primaryvoting_2questions(self):
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
