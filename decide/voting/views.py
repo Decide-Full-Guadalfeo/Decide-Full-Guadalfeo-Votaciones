@@ -95,7 +95,7 @@ class CandidaturaPrimaria(generics.ListCreateAPIView):
                     i+=1
 
                 voting = Voting(name='Votaciones de la candidatura "'+candidatura.nombre+'"',desc="Elige a los representantes de tu candidatura."
-                , tipo="Primary voting", candiancy=candidatura)
+                , tipo="PV", candiancy=candidatura)
                 voting.save()
                 voting.question.add(q1, q2, q3, q4, q5, q6)
 
