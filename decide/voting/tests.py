@@ -349,19 +349,26 @@ class VotingTestCase(BaseTestCase):
     def create_voting(self):
         c = Candidatura(nombre="Candidatura prueba")
         c.save()
-        q = Question(desc="test question")
-        q.save()
-        opt = QuestionOption(question=q, option="test")
-        opt.save()
-        q2 = Question(desc="test question 2")
+        user = User.objects.get(username='admin')
+        q1 = Question(desc='elige representante de primero de la candidatura "'+ c.nombre+'"')
+        q1.save()
+        q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
         q2.save()
-        opt2 = QuestionOption(question=q2, option="test2")
-        opt2.save()
-        v = Voting(name="Test voting",tipo='PV', candiancy=c)
+        q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
+        q3.save()
+        q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
+        q4.save()
+        q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
+        q5.save()
+        q6 = Question(desc='elige representante de delegado de centro de la candidatura "'+ c.nombre+'"')
+        q6.save()
+        v = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
+        , tipo="PV", candiancy=c)
         v.save()
-        v.question.add(q)
-        v.question.add(q2)
-
+        v.question.add(q1, q2, q3, q4, q5, q6)
+        for q in v.question.all():
+            qo = QuestionOption(question = q, number=1, option=user.first_name+" "+user.last_name+ " / "+str(user.id))
+            qo.save()
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
@@ -1147,8 +1154,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "¡No se puede detener una votación antes de que empiece!"
         assert self.driver.find_element(By.CSS_SELECTOR, ".row1 > .field-end_date").text == "-"
     
-   def test_actualizarStartStop(self):
-        '''test: no se actualiza la fecha de comienzo de votación si esta ya ha empezado ni la de fin si ya ha acabado'''
+   def crear_votacion(self):
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
@@ -1219,6 +1225,10 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         actions.move_to_element(element).release().perform()
         self.driver.find_element(By.NAME, "action").click()
         self.driver.find_element(By.NAME, "index").click()
+
+   def test_actualizarStartStop(self):
+        '''test: no se actualiza la fecha de comienzo de votación si esta ya ha empezado ni la de fin si ya ha acabado'''
+        self.crear_votacion()
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
         self.driver.find_element(By.ID, "action-toggle").click()
@@ -1246,7 +1256,41 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "action").click()
         self.driver.find_element(By.NAME, "index").click()
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 already stopped."
-         
+
+   def test_update_voting_started(self):
+        self.crear_votacion()
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.ID, "action-toggle").click()
+        self.driver.find_element(By.NAME, "action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Nuevo nombre")
+        self.driver.find_element(By.CSS_SELECTOR, ".field-desc > div").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Nueva descripción")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.ID, "content").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".errorlist > li").text == "A voting that has already started cannot be updated."
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        element = self.driver.find_element(By.ID, "id_name")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-desc > div").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Elige a los representantes de tu centro"
+        self.driver.close()
+   
+   
    def test_view_verifyCantStartPrimaryVotingWithIncorrectQuestionNumber(self):
         '''test: no se empieza la votación primaria si el número de sus preguntas no es el correcto'''
         self.driver.implicitly_wait(50)
