@@ -9,6 +9,7 @@ from base.models import Auth, Key
 from census.models import Census
 import re
 import sys
+import datetime
 
 
 class Question(models.Model):
@@ -71,6 +72,9 @@ class Voting(models.Model):
     postproc = JSONField(blank=True, null=True)
 
     def clean(self):
+
+        if isinstance(self.start_date,datetime.datetime):
+            raise ValidationError('A voting that has already started cannot be updated.')
         if(self.tipo=='PV'):
             if(self.candiancy == None):
                 raise ValidationError('Primary votings must have a candidancy')
