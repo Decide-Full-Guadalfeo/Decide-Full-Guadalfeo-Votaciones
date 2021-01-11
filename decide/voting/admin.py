@@ -54,9 +54,9 @@ def start(modeladmin, request, queryset):
         elif checkVotingQuestionOptions(v)==False:
              messages.add_message(request, messages.ERROR, 'Las opciones de las preguntas de la votación deben seguir el formato especificado en el manual de usuario. Se recomienda crear la votación de forma automatizada desde el panel de candidaturas.')
         else:
-                v.create_pubkey()
-                v.start_date = timezone.now()
-                v.save()
+            v.create_pubkey()
+            v.start_date = timezone.now()
+            v.save()
 
 
 def stop(ModelAdmin, request, queryset):
