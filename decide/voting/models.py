@@ -15,6 +15,14 @@ import datetime
 class Question(models.Model):
     desc = models.TextField()
 
+    def clean(self):
+        votings = Voting.objects.all()
+        for v in votings:
+            if isinstance(v.start_date,datetime.datetime):
+                for q in v.question.all():
+                    if self.pk == q.pk:
+                        raise ValidationError('A question from a voting that has started cannot be updated.')
+
     def __str__(self):
         return self.desc
 
