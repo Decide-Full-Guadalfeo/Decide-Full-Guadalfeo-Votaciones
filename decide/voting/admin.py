@@ -41,8 +41,9 @@ def checkVotingQuestionOptions(v):
 
 def start(modeladmin, request, queryset):
     for v in queryset.all():
-        print(v.tipo)
-        if v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
+        if isinstance(v.start_date,datetime.datetime):
+            messages.add_message(request, messages.ERROR, v.name+" already started.")
+        elif v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
             messages.add_message(request, messages.ERROR, "La votación primaria "+v.name+" debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro.")
         elif v.tipo=='PV' and checkVotingQuestionNames(v, PRIMARY_QUESTIONS)==False:
             messages.add_message(request, messages.ERROR, "Las votaciones primarias deben seguir el formato especificado en el manual de usuario. Se recomienda crearlas de forma automatizada desde el panel de candidaturas")
@@ -60,11 +61,14 @@ def start(modeladmin, request, queryset):
 
 def stop(ModelAdmin, request, queryset):
     for v in queryset.all():
-        if isinstance(v.start_date,datetime.datetime):
-            v.end_date = timezone.now()
-            v.save()
+        if isinstance(v.end_date,datetime.datetime):
+            messages.add_message(request, messages.ERROR, v.name+" already stopped.")
         else:
-            messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
+            if isinstance(v.start_date,datetime.datetime):
+                v.end_date = timezone.now()
+                v.save()
+            else:
+                messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
 
 def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
     
