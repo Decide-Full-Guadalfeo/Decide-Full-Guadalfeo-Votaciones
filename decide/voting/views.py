@@ -54,35 +54,35 @@ class CandidaturaPrimaria(generics.ListCreateAPIView):
                 q1.save()
                 i=1
                 usuarios_candidatura = VotingUser.objects.filter(candidatura=candidatura)    
-                for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+                for usr in usuarios_candidatura.filter(curso="First"):
                     qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name)
                     qo.save()
                     i+=1
                 q2 = Question(desc='elige representante de segundo de la candidatura "'+candidatura.nombre+'"')
                 q2.save()
                 i=1
-                for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+                for usr in usuarios_candidatura.filter(curso="Second"):
                     qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name)
                     qo.save()
                     i+=1
                 q3 = Question(desc='elige representante de tercero de la candidatura "'+ candidatura.nombre+'"')
                 q3.save()
                 i=1
-                for usr in usuarios_candidatura.filter(curso="TERCERO"):
+                for usr in usuarios_candidatura.filter(curso="Third"):
                     qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name)
                     qo.save()
                     i+=1
                 q4 = Question(desc='elige representante de cuarto de la candidatura "'+ candidatura.nombre+'"')
                 q4.save()
                 i=1
-                for usr in usuarios_candidatura.filter(curso="CUARTO"):
+                for usr in usuarios_candidatura.filter(curso="Fourth"):
                     qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name)
                     qo.save()
                     i+=1
                 q5 = Question(desc='elige representante de máster de la candidatura "'+ candidatura.nombre+'"')
                 q5.save()
                 i=1
-                for usr in usuarios_candidatura.filter(curso="MASTER"):
+                for usr in usuarios_candidatura.filter(curso="Master"):
                     qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name)
                     qo.save()
                     i+=1
@@ -95,7 +95,7 @@ class CandidaturaPrimaria(generics.ListCreateAPIView):
                     i+=1
 
                 voting = Voting(name='Votaciones de la candidatura "'+candidatura.nombre+'"',desc="Elige a los representantes de tu candidatura."
-                , tipo="Primary voting", candiancy=candidatura)
+                , tipo="PV", candiancy=candidatura)
                 voting.save()
                 voting.question.add(q1, q2, q3, q4, q5, q6)
 
@@ -146,25 +146,58 @@ class VotingView(generics.ListCreateAPIView):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        self.permission_classes = (UserIsStaff,)
+        self.permission_classes = (IsAdminUser,)
         self.check_permissions(request)
-        for data in ['name', 'desc', 'question', 'question_opt']:
-            if not data in request.data:
-                return Response({}, status=status.HTTP_400_BAD_REQUEST)
+        for data in ['name', 'tipo', 'question']:
+            if not data in request.data or request.data.get(data) =="":
+                return Response({data+" is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if len(request.data.get("question"))==0:
+                return Response({"Question is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        for i, quest in enumerate(request.data.get('question')):
+                if not 'options' in quest or len(quest.get('options'))==0:
+                    return Response({"Each question must have at least one option"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        candidat = None
+        candi = 'candiancy' in request.data and request.data.get('candiancy') != None and 'nombre' in request.data.get('candiancy') and request.data.get('candiancy').get('nombre')!=""
+        if candi:
+            candidat = Candidatura(nombre=request.data.get('candiancy').get('nombre'))
+            candidat.save()
 
-        question = Question(desc=request.data.get('question'))
-        question.save()
-        for idx, q_opt in enumerate(request.data.get('question_opt')):
-            opt = QuestionOption(question=question, option=q_opt, number=idx)
-            opt.save()
-        voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),
-                question=question)
+        tipo = request.data.get('tipo')
+        if tipo != "GV" and tipo != "PV":
+            if candi:
+                candidat.delete()
+            return Response({"Type must be GV for general voting or PV for primary voting"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if tipo == "GV" and candi:
+            candidat.delete()
+            return Response({"General votings must not have a candidacy"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if tipo == "PV" and not candi:
+            return Response({"Primary votings must have a candidacy"}, status=status.HTTP_400_BAD_REQUEST)
+
+        voting = Voting(name=request.data.get('name'), desc=request.data.get('desc'),tipo=tipo,candiancy=candidat)
         voting.save()
+    
+        for i,quest in enumerate(request.data.get('question')):
+            question = Question(desc=quest.get('desc'))
+            question.save()
+            for idx, q_opt in enumerate(quest.get('options')):
+                opt = QuestionOption(question=question, option=q_opt.get('option'), number=idx)
+                opt.save()
+            voting.question.add(question)
 
-        auth, _ = Auth.objects.get_or_create(url=settings.BASEURL,
-                                          defaults={'me': True, 'name': 'test auth'})
-        auth.save()
-        voting.auths.add(auth)
+        if 'auths' in request.data and len(request.data.get("auths"))!=0:
+            for i,dat in enumerate(request.data.get('auths')):
+                auth,_ = Auth.objects.get_or_create(url=dat.get('url'),me=dat.get('me'),name=dat.get('name'))
+                auth.save()
+                voting.auths.add(auth)
+        
+        for aut in Auth.objects.all():
+           voting.auths.add(aut)
+
         return Response({}, status=status.HTTP_201_CREATED)
 
 class CandidaturaUpdate(generics.RetrieveUpdateDestroyAPIView):
@@ -193,7 +226,7 @@ class VotingUpdate(generics.RetrieveUpdateDestroyAPIView):
     queryset = Voting.objects.all()
     serializer_class = VotingSerializer
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    permission_classes = (UserIsStaff,)
+    permission_classes = (IsAdminUser,)
 
     def put(self, request, voting_id, *args, **kwars):
         action = request.data.get('action')

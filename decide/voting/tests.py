@@ -118,27 +118,27 @@ class CandidaturaTestCase(BaseTestCase):
 
         u1 = User(username="firstVoter", first_name="representante de",last_name="primer curso")
         u1.save()
-        v1 = VotingUser(user=u1,dni="47348063C",sexo="HOMBRE",titulo="SOFTWARE",curso="PRIMERO", candidatura=c)
+        v1 = VotingUser(user=u1,dni="47348063C",sexo="Man",titulo="Software",curso="First", candidatura=c)
         v1.save()
 
         u2 = User(username="secondVoter", first_name="representante de",last_name="segundo curso")
         u2.save()
-        v2 = VotingUser(user=u2,dni="47348063F",sexo="MUJER",titulo="SOFTWARE",curso="SEGUNDO", candidatura=c)
+        v2 = VotingUser(user=u2,dni="47348063F",sexo="Woman",titulo="Software",curso="Second", candidatura=c)
         v2.save()
 
         u3 = User(username="third", first_name="representante de",last_name="tercer curso")
         u3.save()
-        v3 = VotingUser(user=u3,dni="47348068C",sexo="HOMBRE",titulo="SOFTWARE",curso="TERCERO", candidatura=c)
+        v3 = VotingUser(user=u3,dni="47348068C",sexo="Man",titulo="Software",curso="Third", candidatura=c)
         v3.save()
 
         u4 = User(username="fourth", first_name="representante de",last_name="cuarto curso")
         u4.save()
-        v4 = VotingUser(user=u4,dni="47347963C",sexo="HOMBRE",titulo="SOFTWARE",curso="CUARTO", candidatura=c)
+        v4 = VotingUser(user=u4,dni="47347963C",sexo="Man",titulo="Software",curso="Fourth", candidatura=c)
         v4.save()
 
         u5 = User(username="master", first_name="representante de",last_name="master curso")
         u5.save()
-        v5 = VotingUser(user=u5,dni="47297963C",sexo="HOMBRE",titulo="SOFTWARE",curso="MASTER", candidatura=c)
+        v5 = VotingUser(user=u5,dni="47297963C",sexo="Man",titulo="Software",curso="Master", candidatura=c)
         v5.save()
 
         return c
@@ -211,7 +211,7 @@ class CandidaturaTestCase(BaseTestCase):
         q1= Question(desc="Elige representante de primero de la candidatura")
         q1.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+        for usr in usuarios_candidatura.filter(curso="First"):
             qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -219,7 +219,7 @@ class CandidaturaTestCase(BaseTestCase):
         q2= Question(desc="Elige representante de segundo de la candidatura")
         q2.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+        for usr in usuarios_candidatura.filter(curso="Second"):
             qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -227,7 +227,7 @@ class CandidaturaTestCase(BaseTestCase):
         q3= Question(desc="Elige representante de tercero de la candidatura")
         q3.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+        for usr in usuarios_candidatura.filter(curso="Third"):
             qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -235,7 +235,7 @@ class CandidaturaTestCase(BaseTestCase):
         q4= Question(desc="Elige representante de cuarto de la candidatura")
         q4.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
             qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -243,7 +243,7 @@ class CandidaturaTestCase(BaseTestCase):
         q5= Question(desc="Elige representante de master de la candidatura")
         q5.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="MASTER"):
+        for usr in usuarios_candidatura.filter(curso="Master"):
             qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -322,7 +322,7 @@ class CandidaturaTestCase(BaseTestCase):
     def test_create_primary_voting_API_Fail(self):
         '''test: falla al crear desde la API porque ya se han hecho las primarias y hay representante'''
         c = self.create_candidatura_w_voting_users()
-        vu = VotingUser.objects.filter(candidatura=c, curso="PRIMERO").all()[0]
+        vu = VotingUser.objects.filter(candidatura=c, curso="First").all()[0]
         c.representanteDelegadoPrimero=vu.user
         c.save()
         self.login()
@@ -347,14 +347,28 @@ class VotingTestCase(BaseTestCase):
         return k.encrypt(msg)
 
     def create_voting(self):
-        q = Question(desc='test question')
-        q.save()
-        for i in range(5):
-            opt = QuestionOption(question=q, option='option {}'.format(i+1))
-            opt.save()
-        v = Voting(name='test voting', question=q)
+        c = Candidatura(nombre="Candidatura prueba")
+        c.save()
+        user = User.objects.get(username='admin')
+        q1 = Question(desc='elige representante de primero de la candidatura "'+ c.nombre+'"')
+        q1.save()
+        q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
+        q2.save()
+        q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
+        q3.save()
+        q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
+        q4.save()
+        q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
+        q5.save()
+        q6 = Question(desc='elige representante de delegado de centro de la candidatura "'+ c.nombre+'"')
+        q6.save()
+        v = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
+        , tipo="PV", candiancy=c)
         v.save()
-
+        v.question.add(q1, q2, q3, q4, q5, q6)
+        for q in v.question.all():
+            qo = QuestionOption(question = q, number=1, option=user.first_name+" "+user.last_name+ " / "+str(user.id))
+            qo.save()
         a, _ = Auth.objects.get_or_create(url=settings.BASEURL,
                                           defaults={'me': True, 'name': 'test auth'})
         a.save()
@@ -382,20 +396,21 @@ class VotingTestCase(BaseTestCase):
         voter = voters.pop()
 
         clear = {}
-        for opt in v.question.options.all():
-            clear[opt.number] = 0
-            for i in range(random.randint(0, 5)):
-                a, b = self.encrypt_msg(opt.number, v)
-                data = {
-                    'voting': v.id,
-                    'voter': voter.voter_id,
-                    'vote': { 'a': a, 'b': b },
-                }
-                clear[opt.number] += 1
-                user = self.get_or_create_user(voter.voter_id)
-                self.login(user=user.username)
-                voter = voters.pop()
-                mods.post('store', json=data)
+        for q in v.question.all():
+            for opt in q.options.all():
+                clear[opt.number] = 0
+                for i in range(random.randint(0, 5)):
+                    a, b = self.encrypt_msg(opt.number, v)
+                    data = {
+                        'voting': v.id,
+                        'voter': voter.voter_id,
+                        'vote': { 'a': a, 'b': b },
+                    }
+                    clear[opt.number] += 1
+                    user = self.get_or_create_user(voter.voter_id)
+                    self.login(user=user.username)
+                    voter = voters.pop()
+                    mods.post('store', json=data)
         return clear
 
     def test_complete_voting(self):
@@ -408,15 +423,19 @@ class VotingTestCase(BaseTestCase):
 
         clear = self.store_votes(v)
 
+        v.end_date = timezone.now()
+        v.save()
+
         self.login()  # set token
         v.tally_votes(self.token)
 
         tally = v.tally
         tally.sort()
         tally = {k: len(list(x)) for k, x in itertools.groupby(tally)}
-
-        for q in v.question.options.all():
-            self.assertEqual(tally.get(q.number, 0), clear.get(q.number, 0))
+        
+        for q in v.question.all():
+            for opt in q.options.all():
+               self.assertEqual(tally.get(opt.number, 0), clear.get(opt.number, 0))
 
         for q in v.postproc:
             self.assertEqual(tally.get(q["number"], 0), q["votes"])
@@ -437,14 +456,230 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 400)
 
         data = {
-            'name': 'Example',
-            'desc': 'Description example',
-            'question': 'I want a ',
-            'question_opt': ['cat', 'dog', 'horse']
+        "name": "Votaciones de la candidatura \"Candidatura de prueba\"",
+        "desc": "Elige a los representantes de tu candidatura.",
+        "question": [
+            {
+                "desc": "elige representante de primero de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de segundo de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de tercero de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de cuarto de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de máster de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            },
+            {
+                "desc": "elige representante de delegado de centro de la candidatura \"Candidatura de prueba\"",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
         }
+    }
 
         response = self.client.post('/voting/', data, format='json')
         self.assertEqual(response.status_code, 201)
+    
+    def test_create_PrimaryVotingWithoutCandidacy_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV"
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0],'Primary votings must have a candidacy')
+
+    def test_create_GeneralVotingWithCandidacy_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "GV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()[0],'General votings must not have a candidacy')
+    
+    def test_create_GeneralVotingWithoutName_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "GV"
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_PrimaryVotingWithoutName_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "",
+        "desc": "Prueba",
+        "question": [
+            {
+                "desc": "pregunta 1",
+                "options": [
+                    {
+                        "number": 1,
+                        "option": "A"
+                    },
+                    {
+                        "number": 2,
+                        "option": "B"
+                    }
+                ]
+            }
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_PrimaryVotingWithoutQuestions_API_Fail(self):
+        self.login()
+
+        data = {
+        "name": "Votacion de prueba",
+        "desc": "Prueba",
+        "question": [
+            
+        ],
+        "tipo": "PV",
+        "candiancy": {
+            "nombre": "Candidatura de prueba"
+        }
+    }
+
+        response = self.client.post('/voting/', data, format='json')
+        self.assertEqual(response.status_code, 400)
 
     def test_update_voting(self):
         voting = self.create_voting()
@@ -526,7 +761,7 @@ class VotingTestCase(BaseTestCase):
         self.assertEqual(response.json(), 'Voting already tallied')
 
 class PrimaryVotingTestCase(StaticLiveServerTestCase):
-  
+    
    def setUp(self):
         #Load base test functionality for decide
         self.base = BaseTestCase()
@@ -542,7 +777,30 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
-  
+
+   def create_candidatura(self):
+        c = Candidatura(nombre="Candidatura para primarias", delegadoCentro=None, representanteDelegadoPrimero=None,
+            representanteDelegadoSegundo=None, representanteDelegadoTercero=None, representanteDelegadoCuarto= None,
+            representanteDelegadoMaster= None)
+        c.save()
+
+        return c
+   def test_update_primaryVoting(self):
+        '''test: se puede actualizar una votacion con tipo primaria'''
+        c=self.create_candidatura()
+        v = Voting.objects.create(desc='Una votación primaria', name="Votación primaria", tipo='PV',candiancy=c)
+        self.assertEqual(v.name, 'Votación primaria')
+        self.assertEqual(v.desc, 'Una votación primaria')
+        # Actualizamos la votación
+        v.name='Se actualizó el nombre'
+        v.desc='Se actualizó la descripción'
+        v.save()
+        # Y vemos que se han aplicado los cambios
+        self.assertEqual(v.name, 'Se actualizó el nombre',)
+        self.assertEqual(v.desc, 'Se actualizó la descripción')
+        v.delete()
+
+        
    def test_view_createPrimaryVotingOneCandiancyCorrect(self):
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -801,7 +1059,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
         self.driver.find_element(By.LINK_TEXT, "Auths").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element(By.ID, "id_name").click()
@@ -809,7 +1066,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_url").click()
         self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Home").click()
         self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -840,7 +1096,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
         self.driver.find_element(By.ID, "id_representanteDelegadoMaster").click()
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -879,7 +1134,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_options-1-option").click()
         self.driver.find_element(By.ID, "id_options-1-option").send_keys("admin")
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -899,7 +1153,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         dropdown = self.driver.find_element(By.ID, "id_auths")
         dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
         self.driver.find_element(By.NAME, "_save").click()
-
         elements = self.driver.find_elements(By.CSS_SELECTOR, ".success")
         assert len(elements) > 0
         self.driver.find_element(By.CSS_SELECTOR, ".field-name > a").click()
@@ -918,13 +1171,12 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         locator = "option[@value='{}']".format(element.get_attribute("value"))
         selected_text = element.find_element(By.XPATH, locator).text
         assert selected_text == "Candidatura de prueba"
-    
+  
    def test_primaryvoting_errorquestions(self):
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
         self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
         self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
-
         self.driver.find_element(By.LINK_TEXT, "Auths").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
         self.driver.find_element(By.ID, "id_name").click()
@@ -932,7 +1184,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_url").click()
         self.driver.find_element(By.ID, "id_url").send_keys("localhost:8000")
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Home").click()
         self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -963,7 +1214,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         dropdown.find_element(By.XPATH, "//option[. = 'admin']").click()
         self.driver.find_element(By.ID, "id_representanteDelegadoMaster").click()
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Questions").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -1002,7 +1252,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_options-1-option").click()
         self.driver.find_element(By.ID, "id_options-1-option").send_keys("admin")
         self.driver.find_element(By.NAME, "_save").click()
-
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
@@ -1019,26 +1268,415 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert len(elements) > 0
         elements = self.driver.find_elements(By.CSS_SELECTOR, "li")
         assert len(elements) > 0
-        
+
+   def test_view_createPrimawyWithNoCandiancyFails(self):
+        ''' No se puede crear una votacion primaria sin candidatura'''
+        # Log in
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        #Creamos una pregunta
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        # Creamos una auth
+        self.driver.find_element(By.CSS_SELECTOR, ".model-auth .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("localhost")
+        self.driver.find_element(By.ID, "id_url").send_keys("http://localhost:8000")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        # Crear votacion primaria sin candidatura
+        self.driver.find_element(By.CSS_SELECTOR, ".model-voting .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Votacion primaria sin candidatura")
+        self.driver.find_element(By.ID, "id_desc").send_keys("Va a fallar pues debe tener una candidatura")
+        dropdown = self.driver.find_element(By.ID, "id_question")
+        dropdown.find_element(By.XPATH, "//option[. = 'Pregunta']").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.ID, "id_tipo").click()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.CSS_SELECTOR, "li").click()
+        # Comprobar que no se puede
+        assert self.driver.find_element(By.CSS_SELECTOR, "li").text == "Primary votings must have a candidancy"
+
+   def test_view_verifyCantStopVotingBeforeStart(self):
+        '''test: no se actualiza la fecha de fin de votación si esta no ha empezado'''
+        self.driver.implicitly_wait(50)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-auth .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("localhost")
+        self.driver.find_element(By.ID, "id_url").send_keys("http://localhost:8000")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-voting .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("prueba")
+        self.driver.find_element(By.ID, "id_desc").send_keys("prueba")
+        dropdown = self.driver.find_element(By.ID, "id_question")
+        dropdown.find_element(By.XPATH, "//option[. = 'Pregunta']").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        dropdown = self.driver.find_element(By.ID, "id_candiancy")
+        dropdown.find_element(By.XPATH, "//option[. = 'Candidatura de prueba con representantes elegidos']").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Stop']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "¡No se puede detener una votación antes de que empiece!"
+        assert self.driver.find_element(By.CSS_SELECTOR, ".row1 > .field-end_date").text == "-"
+    
+   def crear_votacion(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.LINK_TEXT, "Voting users").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_user").click()
+        dropdown = self.driver.find_element(By.ID, "id_user")
+        dropdown.find_element(By.XPATH, "//option[. = 'noadmin']").click()
+        self.driver.find_element(By.ID, "id_user").click()
+        self.driver.find_element(By.ID, "id_dni").click()
+        self.driver.find_element(By.ID, "id_dni").send_keys("12345678A")
+        dropdown = self.driver.find_element(By.ID, "id_sexo")
+        dropdown.find_element(By.XPATH, "//option[. = 'Man']").click()
+        element = self.driver.find_element(By.ID, "id_sexo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "id_sexo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "id_sexo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.ID, "id_sexo").click()
+        dropdown = self.driver.find_element(By.ID, "id_candidatura")
+        dropdown.find_element(By.XPATH, "//option[. = 'Candidatura de prueba']").click()
+        element = self.driver.find_element(By.ID, "id_candidatura")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "id_candidatura")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "id_candidatura")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.ID, "id_candidatura").click()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Crear votación general con las candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+
+   def test_actualizarStartStop(self):
+        '''test: no se actualiza la fecha de comienzo de votación si esta ya ha empezado ni la de fin si ya ha acabado'''
+        self.crear_votacion()
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.ID, "action-toggle").click()
+        self.driver.find_element(By.NAME, "action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        self.driver.find_element(By.NAME, "action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 already started."
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Stop']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        self.driver.find_element(By.NAME, "action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Stop']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 already stopped."
+
+   def test_update_voting_started(self):
+        self.crear_votacion()
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.ID, "action-toggle").click()
+        self.driver.find_element(By.NAME, "action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("Nuevo nombre")
+        self.driver.find_element(By.CSS_SELECTOR, ".field-desc > div").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Nueva descripción")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.ID, "content").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".errorlist > li").text == "A voting that has already started cannot be updated."
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        self.driver.find_element(By.LINK_TEXT, "Votación general 1").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-name > div").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.ID, "id_name").click()
+        element = self.driver.find_element(By.ID, "id_name")
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+        self.driver.find_element(By.ID, "id_name").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".field-desc > div").click()
+        assert self.driver.find_element(By.ID, "id_desc").text == "Elige a los representantes de tu centro"
+        self.driver.close()
+   
+   
+   def test_view_verifyCantStartPrimaryVotingWithIncorrectQuestionNumber(self):
+        '''test: no se empieza la votación primaria si el número de sus preguntas no es el correcto'''
+        self.driver.implicitly_wait(50)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-auth .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("localhost")
+        self.driver.find_element(By.ID, "id_url").send_keys("http://localhost:8000")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura de prueba con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-voting .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("prueba")
+        self.driver.find_element(By.ID, "id_desc").send_keys("prueba")
+        dropdown = self.driver.find_element(By.ID, "id_question")
+        dropdown.find_element(By.XPATH, "//option[. = 'Pregunta']").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        dropdown = self.driver.find_element(By.ID, "id_candiancy")
+        dropdown.find_element(By.XPATH, "//option[. = 'Candidatura de prueba con representantes elegidos']").click()
+        self.driver.find_element(By.ID, "id_candiancy").click()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "La votación primaria prueba debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro."
+        assert self.driver.find_element(By.CSS_SELECTOR, ".row1 > .field-start_date").text == "-"
+            
  
 class GeneralVotingTestCase(StaticLiveServerTestCase):
-
     def setUp(self):
         #Load base test functionality for decide
         self.base = BaseTestCase()
         self.base.setUp()
-
         options = webdriver.ChromeOptions()
         options.headless = True
         self.driver = webdriver.Chrome(options=options)
-
         super().setUp()    
 
     def tearDown(self):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
-    
+
+    def test_update_generalVoting(self):
+        '''test: se puede actualizar una votacion con tipo general'''
+        v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
+        self.assertEqual(v.name, 'Votacion de prueba')
+        self.assertEqual(v.desc, 'Descripcion de prueba')
+        # Actualizamos la votación
+        v.name='Nuevo nombre'
+        v.desc='Nueva descripcion'
+        v.save()
+        # Y vemos que se han aplicado los cambios
+        self.assertEqual(v.name, 'Nuevo nombre',)
+        self.assertEqual(v.desc, 'Nueva descripcion')
+        v.delete()
+
+    def test_delete_generalVoting(self):
+        '''test: se puede borrar una votacion con tipo general'''
+        v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
+        v_pk = v.pk
+        self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 1)
+        # Borramos la votacion
+        v.delete()
+        # Y comprobamos que se ha borrado 
+        self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 0)
+  
     def test_view_CreateGeneralVotingOneCandiancyCorrect(self):
         '''test: se crea correctamente la votación general con una candidatura que ha hecho primarias'''
         adminId = str(User.objects.get(username='admin').id)
@@ -1122,7 +1760,6 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
         assert value == "1"
         self.driver.find_element(By.ID, "id_options-0-option").click()
-
     def test_view_createGeneralVotingOneCandiancyIncorrect(self):
         '''test: no se crea  la votación general con una candidatura que no ha hecho primarias'''
         self.driver.implicitly_wait(30)
@@ -1155,7 +1792,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         actions.double_click(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".error").click()
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
-            
+          
     def test_view_createGeneralVotingMoreThenOneCandiancyCorrect(self):
         '''test: se crea correctamente la votación general con más de una candidatura que han hecho primarias'''
         adminId = str(User.objects.get(username='admin').id)
@@ -1272,7 +1909,6 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         assert value == "1"
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
         assert value == "2"
-
     def test_view_createGeneralVotingMoreThenOneCandiancyIncorrect(self):
         '''test: no se crea la votación general con varias candidatura si una no ha celebrado primarias'''
         self.driver.implicitly_wait(30)
@@ -1320,6 +1956,72 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         actions = ActionChains(self.driver)
         actions.double_click(element).perform()
         self.driver.find_element(By.CSS_SELECTOR, ".error").click()
-
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
+    def test_view_verifyCantStartGeneralVotingWithIncorrectQuestionNumber(self):
+        '''test: no se empieza la votación general si el número de sus preguntas no es el correcto'''
+        self.driver.implicitly_wait(50)
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-question .addlink").click()
+        self.driver.find_element(By.ID, "id_desc").send_keys("Pregunta")
+        self.driver.find_element(By.ID, "id_options-0-number").click()
+        self.driver.find_element(By.ID, "id_options-0-number").send_keys("1")
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+        self.driver.find_element(By.ID, "id_options-0-option").send_keys("Opcion1")
+        self.driver.find_element(By.ID, "id_options-1-number").click()
+        self.driver.find_element(By.ID, "id_options-1-number").send_keys("2")
+        self.driver.find_element(By.ID, "id_options-1-option").click()
+        self.driver.find_element(By.ID, "id_options-1-option").send_keys("Opcion2")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-auth .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("localhost")
+        self.driver.find_element(By.ID, "id_url").send_keys("http://localhost:8000")
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.LINK_TEXT, "Home").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".model-voting .addlink").click()
+        self.driver.find_element(By.ID, "id_name").send_keys("prueba")
+        self.driver.find_element(By.ID, "id_desc").send_keys("prueba")
+        dropdown = self.driver.find_element(By.ID, "id_question")
+        dropdown.find_element(By.XPATH, "//option[. = 'Pregunta']").click()
+        dropdown = self.driver.find_element(By.ID, "id_auths")
+        dropdown.find_element(By.XPATH, "//option[. = 'http://localhost:8000']").click()
+        dropdown = self.driver.find_element(By.ID, "id_tipo")
+        dropdown.find_element(By.XPATH, "//option[. = 'General voting']").click()
+        element = self.driver.find_element(By.ID, "id_tipo")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "_save").click()
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "La votación general prueba debe tener 7 preguntas, 1 para cada curso, otra para el delegado de centro y otra para la delegación de alumnos."
+        assert self.driver.find_element(By.CSS_SELECTOR, ".row1 > .field-start_date").text == "-"
+
+    
 

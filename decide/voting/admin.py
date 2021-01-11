@@ -9,22 +9,66 @@ from .models import Candidatura
 from .filters import StartedFilter
 from authentication.models import VotingUser
 import datetime
+import re
+from django.contrib.auth.models import User
 
+GENERAL_QUESTIONS = ['Elige al delegado de primero', 'Elige al delegado de segundo', 'Elige al delegado de tercero', 'Elige al delegado de cuarto','Elige al delegado del master', 'Elige al delegado al centro', 'Elige a los miembros de delegación de alumnos']
+PRIMARY_QUESTIONS = ['representante de primero', 'representante de segundo', 'representante de tercero', 'representante de cuarto', 'representante de máster', 'representante de delegado de centro']
+
+def checkVotingQuestionNames(v, descs):
+    questions = Question.objects.filter(voting=v)
+    for q, d in zip(questions, descs):
+        if d not in q.desc:
+            return False
+    return True
+
+def checkVotingQuestionOptions(v):
+    questions = Question.objects.filter(voting=v)
+    for q in questions:
+        opts = QuestionOption.objects.filter(question=q)
+        if len(opts)==0:
+            return False
+        else:
+            for opt in opts:
+                desc = opt.option
+                if re.match('\D+ \/\ \d+',desc):
+                    user_id = desc.split('/')[1].strip()
+                    if User.objects.filter(id = user_id).count()!=1:
+                        return False
+                else:
+                    return False
+    return True
 
 def start(modeladmin, request, queryset):
     for v in queryset.all():
-        v.create_pubkey()
-        v.start_date = timezone.now()
-        v.save()
+        if isinstance(v.start_date,datetime.datetime):
+            messages.add_message(request, messages.ERROR, v.name+" already started.")
+        elif v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
+            messages.add_message(request, messages.ERROR, "La votación primaria "+v.name+" debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro.")
+        elif v.tipo=='PV' and checkVotingQuestionNames(v, PRIMARY_QUESTIONS)==False:
+            messages.add_message(request, messages.ERROR, "Las votaciones primarias deben seguir el formato especificado en el manual de usuario. Se recomienda crearlas de forma automatizada desde el panel de candidaturas")
+        elif v.tipo=='GV' and Question.objects.filter(voting=v).count()!=7:
+            messages.add_message(request, messages.ERROR, "La votación general "+v.name+" debe tener 7 preguntas, 1 para cada curso, otra para el delegado de centro y otra para la delegación de alumnos.")
+        elif v.tipo=='GV' and checkVotingQuestionNames(v, GENERAL_QUESTIONS)==False:
+            messages.add_message(request, messages.ERROR, "Las votaciones generales deben seguir el formato especificado en el manual de usuario. Se recomienda crearlas de forma automatizada desde el panel de candidaturas")
+        elif checkVotingQuestionOptions(v)==False:
+             messages.add_message(request, messages.ERROR, 'Las opciones de las preguntas de la votación deben seguir el formato especificado en el manual de usuario. Se recomienda crear la votación de forma automatizada desde el panel de candidaturas.')
+        else:
+            v.create_pubkey()
+            v.start_date = timezone.now()
+            v.save()
 
 
 def stop(ModelAdmin, request, queryset):
     for v in queryset.all():
-        if isinstance(v.start_date,datetime.datetime):
-            v.end_date = timezone.now()
-            v.save()
+        if isinstance(v.end_date,datetime.datetime):
+            messages.add_message(request, messages.ERROR, v.name+" already stopped.")
         else:
-            messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
+            if isinstance(v.start_date,datetime.datetime):
+                v.end_date = timezone.now()
+                v.save()
+            else:
+                messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
 
 def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
     
@@ -33,36 +77,36 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
         q1.save()
         i=1
         from authentication.models import VotingUser
-        usuarios_candidatura = VotingUser.objects.filter(candidatura=c)    
-        for usr in usuarios_candidatura.filter(curso="PRIMERO"):
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=c)
+        for usr in usuarios_candidatura.filter(curso="First"):
             qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
         q2.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="SEGUNDO"):
+        for usr in usuarios_candidatura.filter(curso="Second"):
             qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
         q3.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="TERCERO"):
+        for usr in usuarios_candidatura.filter(curso="Third"):
             qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
         q4.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="CUARTO"):
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
             qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
         q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
         q5.save()
         i=1
-        for usr in usuarios_candidatura.filter(curso="MASTER"):
+        for usr in usuarios_candidatura.filter(curso="Master"):
             qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
             qo.save()
             i+=1
@@ -76,7 +120,7 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 
 
         voting = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
-        , tipo="Primary voting", candiancy=c)
+        , tipo="PV", candiancy=c)
         voting.save()
         voting.question.add(q1, q2, q3, q4, q5, q6)
 
@@ -89,7 +133,7 @@ def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
 realizarEleccionesPrimarias.short_description="Realizar las votaciones primarias de candidaturas seleccionadas"
 
 def realizarEleccionGeneral(ModelAdmin, request, queryset):
-    numero_votaciones_generales = Voting.objects.filter(tipo='General voting').count()
+    numero_votaciones_generales = Voting.objects.filter(tipo='GV').count()
     indice_votacion = str(numero_votaciones_generales + 1)
     q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
     q1.save()
@@ -130,14 +174,14 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
             alumnos_candidatura_sin_cargo = VotingUser.objects.filter(candidatura=c)
             i = 0
             for alumno in alumnos_candidatura_sin_cargo:
-                if (alumno.user!=c.representanteDelegadoPrimero and alumno!=c.representanteDelegadoSegundo and alumno!=c.representanteDelegadoTercero and alumno!=c.representanteDelegadoCuarto and alumno!=c.representanteDelegadoMaster and alumno!=c.delegadoCentro):
+                if (alumno.user!=c.representanteDelegadoPrimero and alumno.user!=c.representanteDelegadoSegundo and alumno.user!=c.representanteDelegadoTercero and alumno.user!=c.representanteDelegadoCuarto and alumno.user!=c.representanteDelegadoMaster and alumno.user!=c.delegadoCentro):
                     qo7 = QuestionOption(question=q7, number=(contador+i), option=alumno.user.first_name
                                     + ' ' + alumno.user.last_name + ' / ' + str(alumno.user.id))
                     qo7.save()
                     i+=1
             contador += 1
         
-        votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='General voting')
+        votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='GV')
         votacion.save()
         votacion.question.add(q1, q2, q3, q4, q5, q6, q7)
 
