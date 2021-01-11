@@ -777,6 +777,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
+
    def create_candidatura(self):
         c = Candidatura(nombre="Candidatura para primarias", delegadoCentro=None, representanteDelegadoPrimero=None,
             representanteDelegadoSegundo=None, representanteDelegadoTercero=None, representanteDelegadoCuarto= None,
@@ -798,6 +799,260 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.assertEqual(v.name, 'Se actualizó el nombre',)
         self.assertEqual(v.desc, 'Se actualizó la descripción')
         v.delete()
+
+        
+   def test_view_createPrimaryVotingOneCandiancyCorrect(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura con representantes elegidos")
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Realizar las votaciones primarias de candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".success").text == "¡Las elecciones primarias se han creado!"
+
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        assert self.driver.find_element(By.LINK_TEXT, 'Votaciones de la candidatura "Candidatura con representantes elegidos"').text == 'Votaciones de la candidatura "Candidatura con representantes elegidos"'
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
+        
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=1)
+        for usr in usuarios_candidatura:
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+            
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Master"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Third"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Second"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="First"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+
+        self.driver.find_element(By.ID, "id_options-0-option").click()
+
+   def test_view_createPrimaryVotingMoreThanOneCandiancyCorrect(self):
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.ID, "id_username").send_keys("admin")
+        self.driver.find_element(By.ID, "id_password").send_keys("qwerty")
+        self.driver.find_element(By.ID, "id_password").send_keys(Keys.ENTER)
+
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura con representantes elegidos")   
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('admin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('admin')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.driver.get(f'{self.live_server_url}/admin/')
+        self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
+
+        self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura 2 con representantes elegidos")   
+        select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoPrimero"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoSegundo"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoTercero"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoCuarto"))
+        select.select_by_visible_text('noadmin')
+        select = Select(self.driver.find_element(By.ID, "id_representanteDelegadoMaster"))
+        select.select_by_visible_text('noadmin')
+        self.driver.find_element(By.NAME, "_save").click()
+
+        self.driver.find_element(By.NAME, "_selected_action").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".row2 .action-select").click()
+        dropdown = self.driver.find_element(By.NAME, "action")
+        dropdown.find_element(By.XPATH, "//option[. = 'Realizar las votaciones primarias de candidaturas seleccionadas']").click()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).click_and_hold().perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).perform()
+        element = self.driver.find_element(By.NAME, "action")
+        actions = ActionChains(self.driver)
+        actions.move_to_element(element).release().perform()
+        self.driver.find_element(By.NAME, "action").click()
+        self.driver.find_element(By.NAME, "index").click()
+        assert self.driver.find_element(By.CSS_SELECTOR, ".success").text == "¡Las elecciones primarias se han creado!"
+
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Votings").click()
+        assert self.driver.find_element(By.LINK_TEXT, 'Votaciones de la candidatura "Candidatura con representantes elegidos"').text == 'Votaciones de la candidatura "Candidatura con representantes elegidos"'
+        self.driver.find_element(By.LINK_TEXT, "Voting").click()
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"'
+        assert self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
+        
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de delegado de centro de la candidatura "Candidatura con representantes elegidos"'
+        
+        usuarios_candidatura = VotingUser.objects.filter(candidatura=1)
+        nousuarios_candidatura = VotingUser.objects.filter(candidatura=2)
+        
+        for usr in usuarios_candidatura:
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura:
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
+       
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de máster de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Master"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura.filter(curso="Master"):
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
+        
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de cuarto de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Fourth"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura.filter(curso="Fourth"):
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
+        
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de tercero de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Third"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura.filter(curso="Third"):
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
+        
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de segundo de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="Second"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura.filter(curso="Second"):
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
+        
+
+        self.driver.find_element(By.LINK_TEXT, "Questions").click()
+        self.driver.find_element(By.LINK_TEXT, 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"').click()
+        assert self.driver.find_element(By.ID, "id_desc").text == 'elige representante de primero de la candidatura "Candidatura con representantes elegidos"'
+        for usr in usuarios_candidatura.filter(curso="First"):
+            assert self.driver.find_element(By.ID, "id_options-0-option").text ==usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-0-number").get_attribute("value")
+            assert value == "1"
+        for nousr in nousuarios_candidatura.filter(curso="First"):
+            assert self.driver.find_element(By.ID, "id_options-1-option").text ==nousr.user.first_name+" "+nousr.user.last_name+ " / "+str(nousr.user.pk)
+            value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
+            assert value == "2"
 
    def test_primaryvoting_2questions(self):
         self.driver.get(f'{self.live_server_url}/admin/')
