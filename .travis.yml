@@ -3,6 +3,7 @@ services:
 - postgresql
 addons:
   postgresql: '9.4'
+  chrome: stable
 before_script:
 - psql -U postgres -c "create user decide password 'decide'"
 - psql -U postgres -c "create database test_decide owner decide"
@@ -10,15 +11,12 @@ before_script:
 language: python
 python:
 - '3.6'
-addons:
-  chrome: stable
 install:
 - pip install -r requirements.txt
 - pip install codacy-coverage
 script:
 - cd decide
 - cp travis_local_settings.py local_settings.py
-- google-chrome-stable --headless --disable-gpu --remote-debugging-port=9222 http://localhost:8000 &
 - coverage run --branch --source=. ./manage.py test --keepdb
 - coverage xml
 - python-codacy-coverage -r coverage.xml
