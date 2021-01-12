@@ -29,6 +29,11 @@ script:
 - coverage run --branch --source=. ./manage.py test voting --keepdb
 - coverage xml
 - python-codacy-coverage -r coverage.xml
+after_script:
+  - cd decide
+  - cp travis_settings.py settings.py
+  - cd ..
+
 deploy:
   provider: heroku
   app: guadalfeo-votaciones-prod
