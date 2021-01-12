@@ -7,6 +7,9 @@ from django.test import TestCase
 from django.db.utils import IntegrityError
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
+from django.urls import reverse
+from rest_framework import status
+from .serializers import CandidaturaSerializer
 
 from base import mods
 from base.tests import BaseTestCase
@@ -331,6 +334,51 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 400)
         
         #FIN TEST VOTACION PRIMARIA
+
+
+    def test_create_candidatura_api(self):
+        self.login()
+
+        data = {
+            'nombre': 'Candidatura de prueba',
+            'delegadoCentro': 'Pepe Viyuela',
+            'representanteDelegadoPrimero': 'Lautaro Gomez',
+            'representanteDelegadoSegundo': 'Juan Alberto Garcia',
+            'representanteDelegadoTercero': 'Sergio Perez',
+            'representanteDelegadoCuarto': 'Ruben Doblas',
+            'representanteDelegadoMaster': 'Raul Contreras',
+        }
+        response = self.client.post('/voting/candidatura/', data, format='json')
+        self.assertEqual(response.status_code, 201)
+
+    def test_get_valid_candidatura_api(self):
+        usuario = User(username="master", first_name="representante de",last_name="master curso")
+        usuario.save()
+        usuario2 = User(username="fourth", first_name="representante de",last_name="cuarto curso")
+        usuario2.save()
+        self.c1= Candidatura(nombre="CandidaturaPrueba1", delegadoCentro=usuario, representanteDelegadoPrimero=usuario,
+            representanteDelegadoSegundo=usuario, representanteDelegadoTercero=usuario, representanteDelegadoCuarto= usuario,
+            representanteDelegadoMaster= usuario)
+        self.c1.save()
+        self.c2=Candidatura(nombre="Candidatura de prueba 2", delegadoCentro=usuario2, representanteDelegadoPrimero=usuario2,
+            representanteDelegadoSegundo=usuario2, representanteDelegadoTercero=usuario2, representanteDelegadoCuarto= usuario2,
+            representanteDelegadoMaster= usuario2)
+        self.c2.save()
+
+        self.login()
+        response= self.client.get(reverse('candidatura',kwargs={'pk':self.c2.pk}))
+        candidatura=Candidatura.objects.get(pk=self.c2.pk)
+        serializer=CandidaturaSerializer(candidatura)
+        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_all_candidaturas_api(self):
+        response= self.client.get(reverse('candidatura'))
+        candidatura=Candidatura.objects.all()
+        serializer=CandidaturaSerializer(candidatura,many=True)
+        self.assertEqual(response.data, serializer.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 class VotingTestCase(BaseTestCase):
 
     def setUp(self):
