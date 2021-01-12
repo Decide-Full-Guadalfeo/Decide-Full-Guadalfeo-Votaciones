@@ -71,7 +71,6 @@ def stop(ModelAdmin, request, queryset):
                 messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
 
 def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
-    
     for c in queryset.all():
 
         usuarios_candidatura = VotingUser.objects.filter(candidatura=c)
@@ -197,7 +196,6 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
             votacion.auths.add(auth)
         messages.add_message(request, messages.SUCCESS, "¡La elección general se ha creado!")
     except Exception as e:
-        print(e)
         # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
         q1.delete()
         q2.delete()

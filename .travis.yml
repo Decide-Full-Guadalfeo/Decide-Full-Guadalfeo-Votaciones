@@ -30,9 +30,9 @@ script:
 - coverage xml
 - python-codacy-coverage -r coverage.xml
 after_script:
-  - cd decide
-  - cp travis_settings.py settings.py
-  - cd ..
+- cd decide
+- cp travis_settings.py settings.py
+- cd ..
 
 deploy:
   provider: heroku
