@@ -11,6 +11,96 @@ from .serializers import SimpleVotingSerializer, VotingSerializer, CandidaturaSe
 from base.perms import UserIsStaff
 from base.models import Auth
 
+class GeneralVoting(generics.ListCreateAPIView):
+    queryset = Candidatura.objects.all()
+    serializer_class =  CandidaturaSerializer
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+
+    def post (self, request, *args, **kwargs):
+        self.permission_classes = (IsAdminUser,)
+        self.check_permissions(request)
+        candidaturas_id = request.data.get('ids')
+        if not candidaturas_id:
+            return Response({'No se aportan las ids de las candidaturas'}, status=status.HTTP_400_BAD_REQUEST)
+        candidaturas = []
+        for i in candidaturas_id:
+            cand = get_object_or_404(Candidatura, pk = i)
+            candidaturas.append(cand)
+
+        msg = ''
+        st = status.HTTP_200_OK
+        
+        numero_votaciones_generales = Voting.objects.filter(tipo='GV').count()
+        indice_votacion = str(numero_votaciones_generales + 1)
+        q1 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de primero')
+        q1.save()
+        q2 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de segundo')
+        q2.save()
+        q3 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de tercero')
+        q3.save()
+        q4 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado de cuarto')
+        q4.save()
+        q5 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado del master')
+        q5.save()
+        q6 = Question(desc='Votación general ' + indice_votacion + ': Elige al delegado al centro')
+        q6.save()
+        q7 = Question(desc='Votación general ' + indice_votacion + ': Elige a los miembros de delegación de alumnos')
+        q7.save()
+        try:
+            contador = 1
+            for c in candidaturas:
+                qo1 = QuestionOption(question=q1, number=contador, option=c.representanteDelegadoPrimero.first_name
+                                        + ' ' + c.representanteDelegadoPrimero.last_name + ' / ' + str(c.representanteDelegadoPrimero.id))
+                qo1.save()
+                qo2 = QuestionOption(question=q2, number=contador, option=c.representanteDelegadoSegundo.first_name
+                                        + ' ' + c.representanteDelegadoSegundo.last_name + ' / ' + str(c.representanteDelegadoSegundo.id))
+                qo2.save()
+                qo3 = QuestionOption(question=q3, number=contador, option=c.representanteDelegadoTercero.first_name
+                                        + ' ' + c.representanteDelegadoTercero.last_name + ' / ' + str(c.representanteDelegadoTercero.id)) 
+                qo3.save()
+                qo4 = QuestionOption(question=q4, number=contador, option=c.representanteDelegadoCuarto.first_name
+                                        + ' ' + c.representanteDelegadoCuarto.last_name + ' / ' + str(c.representanteDelegadoCuarto.id))
+                qo4.save()
+                qo5 = QuestionOption(question=q5, number=contador, option=c.representanteDelegadoMaster.first_name
+                                        + ' ' + c.representanteDelegadoMaster.last_name + ' / ' + str(c.representanteDelegadoMaster.id))
+                qo5.save()
+                qo6 = QuestionOption(question=q6, number=contador, option=c.delegadoCentro.first_name
+                                        + ' ' + c.delegadoCentro.last_name + ' / ' + str(c.delegadoCentro.id))
+                qo6.save()
+                #Para delegacion de alumno hay que poner una opcion por cada alumno de la candidatura que no se presente a ninguno de los cargos previos
+                alumnos_candidatura_sin_cargo = VotingUser.objects.filter(candidatura=c)
+                i = 0
+                for alumno in alumnos_candidatura_sin_cargo:
+                    if (alumno.user!=c.representanteDelegadoPrimero and alumno.user!=c.representanteDelegadoSegundo and alumno.user!=c.representanteDelegadoTercero and alumno.user!=c.representanteDelegadoCuarto and alumno.user!=c.representanteDelegadoMaster and alumno.user!=c.delegadoCentro):
+                        qo7 = QuestionOption(question=q7, number=(contador+i), option=alumno.user.first_name
+                                        + ' ' + alumno.user.last_name + ' / ' + str(alumno.user.id))
+                        qo7.save()
+                        i+=1
+                contador += 1
+            
+            votacion = Voting(name='Votación general ' + indice_votacion, desc='Elige a los representantes de tu centro', tipo='GV')
+            votacion.save()
+            votacion.question.add(q1, q2, q3, q4, q5, q6, q7)
+
+            for auth in Auth.objects.all():
+                votacion.auths.add(auth)
+
+        except Exception as e:
+            # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
+            q1.delete()
+            q2.delete()
+            q3.delete()
+            q4.delete()
+            q5.delete()
+            q6.delete()
+            q7.delete()
+            # Lo indicamos
+            msg = 'Alguna de las candidaturas que se han seleccionado no ha celebrado primarias para elegir a sus representantes'
+            st = status.HTTP_400_BAD_REQUEST
+
+        return Response(msg, status=st)
+
+
 class CandidaturaPrimaria(generics.ListCreateAPIView):
     queryset = Candidatura.objects.all()
     serializer_class =  CandidaturaSerializer
@@ -127,7 +217,9 @@ class CandidaturaView(generics.ListCreateAPIView):
         candidatura = Candidatura(nombre=request.data.get('nombre'))
         candidatura.save()
 
-        return Response({}, status=status.HTTP_201_CREATED)
+        resposne = Response({}, status=status.HTTP_201_CREATED)
+        resposne.data['id'] = candidatura.pk
+        return resposne
 
 
 class VotingView(generics.ListCreateAPIView):

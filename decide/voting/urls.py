@@ -8,5 +8,5 @@ urlpatterns = [
     path('candidaturaprimaria/<int:candidatura_id>/', views.CandidaturaPrimaria.as_view(), name='candidaturaprimaria'),
     path('candidatura/', views.CandidaturaView.as_view(), name='candidatura'),
     path('candidatura/<int:candidatura_id>/', views.CandidaturaUpdate.as_view(), name='candidatura'),
-
+    path('general/', views.GeneralVoting.as_view(), name="generalVoting")
 ]
