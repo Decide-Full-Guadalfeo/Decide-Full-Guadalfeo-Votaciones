@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.utils import timezone
 from django.contrib import messages
-from .models import QuestionOption
+from .models import QuestionOption, Candidatura
 from base.models import Auth
 from .models import Question
 from .models import Voting
-from .models import Candidatura
+
 from .filters import StartedFilter
 from authentication.models import VotingUser
 import datetime
