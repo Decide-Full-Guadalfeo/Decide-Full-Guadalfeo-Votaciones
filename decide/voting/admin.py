@@ -230,6 +230,20 @@ class QuestionOptionInline(admin.TabularInline):
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [QuestionOptionInline]
+    actions = ['delete_selected']
+
+    def delete_selected(self, request, obj):
+        for o in obj.all():
+            i=0
+            votings = Voting.objects.all()
+            for v in votings:
+                if isinstance(v.start_date,datetime.datetime):
+                    if v.question.filter(id = o.id):
+                            i+=1
+            if i==0:
+                o.delete()
+            else:
+                messages.add_message(request, messages.ERROR, "A question from a voting that has started cannot be deleted.")
 
 class CandidaturaAdmin(admin.ModelAdmin):
     actions = [ realizarEleccionesPrimarias , borrarVotingPrimary, realizarEleccionGeneral]
