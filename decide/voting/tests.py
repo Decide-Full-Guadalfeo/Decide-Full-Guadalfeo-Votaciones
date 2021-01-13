@@ -24,16 +24,8 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-import time
-
-from base.tests import BaseTestCase
-
-
 class VotacionTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -163,7 +155,7 @@ class CandidaturaTestCase(BaseTestCase):
         c.save()
         return c
     def test_create_candidaturaCompleta(self):
-        '''test: deja crear candidatura con representantes y delegados'''
+        """test: deja crear candidatura con representantes y delegados"""
         numeroCandidaturas = Candidatura.objects.count()
         c = self.create_candidatura("completo")
         numeroCandidaturasTrasCreate = Candidatura.objects.count()
@@ -172,7 +164,7 @@ class CandidaturaTestCase(BaseTestCase):
         c.delete()
 
     def test_create_candidaturaSinUsuarios(self):
-        '''test: deja crear candidatura sin representantes y delegados'''
+        """test: deja crear candidatura sin representantes y delegados"""
         numeroCandidaturas = Candidatura.objects.count()
         c = self.create_candidatura("nulos")
         numeroCandidaturasTrasCreate = Candidatura.objects.count()
@@ -181,14 +173,14 @@ class CandidaturaTestCase(BaseTestCase):
         c.delete()
 
     def test_create_candidaturaSinNombre(self):
-        '''test: NO deja crear candidatura sin nombre'''
+        """test: NO deja crear candidatura sin nombre"""
         with self.assertRaises(Exception) as cm:
             self.create_candidatura("sinNombre")
         the_exception = cm.exception
         self.assertEqual(type(the_exception), IntegrityError)
 
     def test_update_candidatura(self):
-        '''test: se puede actualizar una candidatura'''
+        """test: se puede actualizar una candidatura"""
         c = self.create_candidatura("nulos")
         Candidatura.objects.filter(pk=c.pk).update(nombre="Nombre actualizado")
         c.refresh_from_db()
@@ -196,7 +188,7 @@ class CandidaturaTestCase(BaseTestCase):
         c.delete()
 
     def test_delete_candidatura(self):
-        '''test: se borra una candidatura'''
+        """test: se borra una candidatura"""
         numeroCandidaturas = Candidatura.objects.count()
         c = self.create_candidatura("nulos")
         numeroCandidaturasTrasCreate = Candidatura.objects.count()
@@ -208,9 +200,7 @@ class CandidaturaTestCase(BaseTestCase):
    #PRINCIPIO TEST VOTACIONES PRIMARIAS
     
     def create_primary_voting(self,nombreVotacion,candidatura):
-
         usuarios_candidatura = VotingUser.objects.filter(candidatura=candidatura)   
-
         q1= Question(desc="Elige representante de primero de la candidatura")
         q1.save()
         i=1
@@ -311,7 +301,7 @@ class CandidaturaTestCase(BaseTestCase):
         numVotacionesTrasBorrar=Voting.objects.count()
         self.assertTrue(numVotacionesTrasBorrar==num_votaciones)
     def test_create_primary_voting_API(self):
-        '''test: deja crear bien las votaciones primarias desde la API'''
+        """test: deja crear bien las votaciones primarias desde la API"""
         c = self.create_candidatura_w_voting_users()
         self.login()
         data = {'action': 'start'}
@@ -323,7 +313,7 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(CreadoRepresentanteMaster, True)
 
     def test_create_primary_voting_API_Fail(self):
-        '''test: falla al crear desde la API porque ya se han hecho las primarias y hay representante'''
+        """test: falla al crear desde la API porque ya se han hecho las primarias y hay representante"""
         c = self.create_candidatura_w_voting_users()
         vu = VotingUser.objects.filter(candidatura=c, curso="First").all()[0]
         c.representanteDelegadoPrimero=vu.user
@@ -834,7 +824,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
 
         return c
    def test_update_primaryVoting(self):
-        '''test: se puede actualizar una votacion con tipo primaria'''
+        """test: se puede actualizar una votacion con tipo primaria"""
         c=self.create_candidatura()
         v = Voting.objects.create(desc='Una votación primaria', name="Votación primaria", tipo='PV',candiancy=c)
         self.assertEqual(v.name, 'Votación primaria')
@@ -1031,7 +1021,6 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
 
         self.driver.find_element(By.LINK_TEXT, "Candidaturas").click()
         self.driver.find_element(By.CSS_SELECTOR, ".addlink").click()
-
         self.driver.find_element(By.ID, "id_nombre").send_keys("Candidatura con representantes elegidos")   
         select = Select(self.driver.find_element(By.ID, "id_delegadoCentro"))
         select.select_by_visible_text('admin')
@@ -1415,7 +1404,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert len(elements) > 0
 
    def test_view_createPrimawyWithNoCandiancyFails(self):
-        ''' No se puede crear una votacion primaria sin candidatura'''
+        """No se puede crear una votacion primaria sin candidatura"""
         # Log in
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -1464,7 +1453,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         assert self.driver.find_element(By.CSS_SELECTOR, "li").text == "Primary votings must have a candidancy"
 
    def test_view_verifyCantStopVotingBeforeStart(self):
-        '''test: no se actualiza la fecha de fin de votación si esta no ha empezado'''
+        """test: no se actualiza la fecha de fin de votación si esta no ha empezado"""
         self.driver.implicitly_wait(50)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -1701,7 +1690,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.NAME, "index").click()
 
    def test_actualizarStartStop(self):
-        '''test: no se actualiza la fecha de comienzo de votación si esta ya ha empezado ni la de fin si ya ha acabado'''
+        """test: no se actualiza la fecha de comienzo de votación si esta ya ha empezado ni la de fin si ya ha acabado"""
         self.crear_votacion()
         self.driver.find_element(By.LINK_TEXT, "Voting").click()
         self.driver.find_element(By.LINK_TEXT, "Votings").click()
@@ -1766,7 +1755,7 @@ class PrimaryVotingTestCase(StaticLiveServerTestCase):
    
    
    def test_view_verifyCantStartPrimaryVotingWithIncorrectQuestionNumber(self):
-        '''test: no se empieza la votación primaria si el número de sus preguntas no es el correcto'''
+        """test: no se empieza la votación primaria si el número de sus preguntas no es el correcto"""
         self.driver.implicitly_wait(50)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -1873,7 +1862,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.base.tearDown()
 
     def test_update_generalVoting(self):
-        '''test: se puede actualizar una votacion con tipo general'''
+        """test: se puede actualizar una votacion con tipo general"""
         v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
         self.assertEqual(v.name, 'Votacion de prueba')
         self.assertEqual(v.desc, 'Descripcion de prueba')
@@ -1887,7 +1876,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         v.delete()
 
     def test_delete_generalVoting(self):
-        '''test: se puede borrar una votacion con tipo general'''
+        """test: se puede borrar una votacion con tipo general"""
         v = Voting.objects.create(desc='Descripcion de prueba', name="Votacion de prueba", tipo='GV')
         v_pk = v.pk
         self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 1)
@@ -1897,7 +1886,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.assertEqual(Voting.objects.filter(pk=v_pk).count(), 0)
   
     def test_view_CreateGeneralVotingOneCandiancyCorrect(self):
-        '''test: se crea correctamente la votación general con una candidatura que ha hecho primarias'''
+        """test: se crea correctamente la votación general con una candidatura que ha hecho primarias"""
         adminId = str(User.objects.get(username='admin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -1980,7 +1969,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         assert value == "1"
         self.driver.find_element(By.ID, "id_options-0-option").click()
     def test_view_createGeneralVotingOneCandiancyIncorrect(self):
-        '''test: no se crea  la votación general con una candidatura que no ha hecho primarias'''
+        """test: no se crea  la votación general con una candidatura que no ha hecho primarias"""
         self.driver.implicitly_wait(30)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -2013,7 +2002,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
           
     def test_view_createGeneralVotingMoreThenOneCandiancyCorrect(self):
-        '''test: se crea correctamente la votación general con más de una candidatura que han hecho primarias'''
+        """test: se crea correctamente la votación general con más de una candidatura que han hecho primarias"""
         adminId = str(User.objects.get(username='admin').id)
         noAdminId = str(User.objects.get(username='noadmin').id)
         self.driver.get(f'{self.live_server_url}/admin/')
@@ -2129,7 +2118,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         value = self.driver.find_element(By.ID, "id_options-1-number").get_attribute("value")
         assert value == "2"
     def test_view_createGeneralVotingMoreThenOneCandiancyIncorrect(self):
-        '''test: no se crea la votación general con varias candidatura si una no ha celebrado primarias'''
+        """test: no se crea la votación general con varias candidatura si una no ha celebrado primarias"""
         self.driver.implicitly_wait(30)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")
@@ -2177,7 +2166,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.CSS_SELECTOR, ".error").click()
         assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Se ha seleccionado alguna candidatura que no había celebrado votaciones primarias para elegir a los representantes"
     def test_view_verifyCantStartGeneralVotingWithIncorrectQuestionNumber(self):
-        '''test: no se empieza la votación general si el número de sus preguntas no es el correcto'''
+        """test: no se empieza la votación general si el número de sus preguntas no es el correcto"""
         self.driver.implicitly_wait(50)
         self.driver.get(f'{self.live_server_url}/admin/')
         self.driver.find_element(By.ID, "id_username").send_keys("admin")

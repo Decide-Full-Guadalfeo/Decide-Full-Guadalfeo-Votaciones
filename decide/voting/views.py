@@ -117,20 +117,13 @@ class CandidaturaPrimaria(generics.ListCreateAPIView):
         st = status.HTTP_200_OK
         if action == "delete":
             if(Voting.objects.filter(candiancy=candidatura).exists()):
-                for voting in Voting.objects.filter(candiancy=candidatura):
-                    voting.delete()
-                for question1 in Question.objects.filter(desc__regex='elige representante de primero de la candidatura "'+candidatura.nombre+'"'):
-                    question1.delete()
-                for question2 in Question.objects.filter(desc__regex='elige representante de segundo de la candidatura "'+candidatura.nombre+'"'):
-                    question2.delete()
-                for question3 in Question.objects.filter(desc__regex='elige representante de tercero de la candidatura "'+candidatura.nombre+'"'):
-                    question3.delete()
-                for question4 in Question.objects.filter(desc__regex='elige representante de cuarto de la candidatura "'+candidatura.nombre+'"'):
-                    question4.delete()
-                for question5 in Question.objects.filter(desc__regex='elige representante de máster de la candidatura "'+candidatura.nombre+'"'):
-                    question5.delete()
-                for question6 in Question.objects.filter(desc__regex='elige representante de delegado de centro de la candidatura "'+candidatura.nombre+'"'):
-                    question6.delete()
+                Voting.objects.filter(candiancy=candidatura).all().delete()
+                Question.objects.filter(desc__regex='elige representante de primero de la candidatura "'+candidatura.nombre+'"').all().delete()
+                Question.objects.filter(desc__regex='elige representante de segundo de la candidatura "'+candidatura.nombre+'"').all().delete()
+                Question.objects.filter(desc__regex='elige representante de tercero de la candidatura "'+candidatura.nombre+'"').all().delete()
+                Question.objects.filter(desc__regex='elige representante de cuarto de la candidatura "'+candidatura.nombre+'"').all().delete()
+                Question.objects.filter(desc__regex='elige representante de máster de la candidatura "'+candidatura.nombre+'"').all().delete()
+                Question.objects.filter(desc__regex='elige representante de delegado de centro de la candidatura "'+candidatura.nombre+'"').all().delete()
             else:
                 msg = "Es posible que las primarias hayan sido borradas o no hayan sido creadas"
                 st = status.HTTP_400_BAD_REQUEST
@@ -192,7 +185,6 @@ class CandidaturaPrimaria(generics.ListCreateAPIView):
                 for auth in Auth.objects.all():
                     voting.auths.add(auth)
                 st = status.HTTP_200_OK
-            
         return Response(msg, status=st)
 
 

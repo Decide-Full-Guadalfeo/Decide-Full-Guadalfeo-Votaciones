@@ -8,7 +8,6 @@ from base import mods
 from base.models import Auth, Key
 from census.models import Census
 import re
-import sys
 import datetime
 
 
@@ -105,12 +104,11 @@ class Voting(models.Model):
         return [i['data'] for i in votes]
 
     def tally_votes(self, token=''):
-        '''
+        """
         The tally is a shuffle and then a decrypt
-        '''
+        """
 
         votes = self.get_votes(token)
-        print('votes',votes)
         auth = self.auths.first()
         shuffle_url = "/shuffle/{}/".format(self.id)
         decrypt_url = "/decrypt/{}/".format(self.id)
