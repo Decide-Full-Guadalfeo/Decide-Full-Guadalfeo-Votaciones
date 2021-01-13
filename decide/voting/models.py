@@ -129,7 +129,6 @@ class Voting(models.Model):
             for i in aux:
                 a = int(aux[i]['a'])
                 b = int(aux[i]['b'])
-                    
                 #  decrypt 
                 data = {"msgs": [[a,b]]}
                 response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
