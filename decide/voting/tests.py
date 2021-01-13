@@ -325,6 +325,37 @@ class CandidaturaTestCase(BaseTestCase):
         
         #FIN TEST VOTACION PRIMARIA
 
+        #PRINCIPIO TEST VOTACION GENERAL API
+    
+    def test_create_general_voting_API(self):
+        """test: deja crear bien las votaciones generales desde la API"""
+        antes = Voting.objects.all().count()
+        antesQ = Question.objects.all().count()
+        c = self.create_candidatura("completo")
+        self.login()
+        data = {'ids':[c.pk]}
+        response = self.client.post('/voting/general/', data, format='json')
+        self.assertEqual(response.status_code, 200)
+        despues = Voting.objects.all().count()
+        despuesQ = Question.objects.all().count()
+        self.assertEqual(antes + 1,despues)
+        self.assertEqual(antesQ + 7, despuesQ)
+
+    def test_create_general_voting_FAIL_API(self):
+        """test: falla al crear las votaciones generales desde la API candidatura nulo"""
+        antes = Voting.objects.all().count()
+        antesQ = Question.objects.all().count()
+        c = self.create_candidatura("nulos")
+        self.login()
+        data = {'ids':[c.pk]}
+        response = self.client.post('/voting/general/', data, format='json')
+        self.assertEqual(response.status_code, 400)
+        despues = Voting.objects.all().count()
+        despuesQ = Question.objects.all().count()
+        self.assertEqual(antes,despues)
+        self.assertEqual(antesQ, despuesQ)
+
+        #FIN TEST VOTACION GENERAL API
 
     def test_create_candidatura_api(self):
         self.login()
