@@ -71,64 +71,70 @@ def stop(ModelAdmin, request, queryset):
                 messages.add_message(request, messages.ERROR, "¡No se puede detener una votación antes de que empiece!")
 
 def realizarEleccionesPrimarias(ModelAdmin, request, queryset):
-    
     for c in queryset.all():
-        q1 = Question(desc='elige representante de primero de la candidatura "'+ c.nombre+'"')
-        q1.save()
-        i=1
-        from authentication.models import VotingUser
+
         usuarios_candidatura = VotingUser.objects.filter(candidatura=c)
-        for usr in usuarios_candidatura.filter(curso="First"):
-            qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
-        q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
-        q2.save()
-        i=1
-        for usr in usuarios_candidatura.filter(curso="Second"):
-            qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
-        q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
-        q3.save()
-        i=1
-        for usr in usuarios_candidatura.filter(curso="Third"):
-            qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
-        q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
-        q4.save()
-        i=1
-        for usr in usuarios_candidatura.filter(curso="Fourth"):
-            qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
-        q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
-        q5.save()
-        i=1
-        for usr in usuarios_candidatura.filter(curso="Master"):
-            qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
-        q6 = Question(desc='elige representante de delegado de centro de la candidatura "'+ c.nombre+'"')
-        q6.save()
-        i=1
-        for usr in usuarios_candidatura:
-            qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
-            qo.save()
-            i+=1
+        first = usuarios_candidatura.filter(curso="First").count()==0
+        second = usuarios_candidatura.filter(curso="Second").count()==0
+        third = usuarios_candidatura.filter(curso="Third").count()==0
+        fourth = usuarios_candidatura.filter(curso="Fourth").count()==0
+        master = usuarios_candidatura.filter(curso="Master").count()==0
+        if first or second or third or fourth or master:
+            messages.add_message(request, messages.ERROR, "Debe haber al menos un miembro de cada curso en la candidatura.")
+        else:
+            q1 = Question(desc='elige representante de primero de la candidatura "'+ c.nombre+'"')
+            q1.save()
+            i=1
+            for usr in usuarios_candidatura.filter(curso="First"):
+                qo = QuestionOption(question = q1, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
+            q2 = Question(desc='elige representante de segundo de la candidatura "'+c.nombre+'"')
+            q2.save()
+            i=1
+            for usr in usuarios_candidatura.filter(curso="Second"):
+                qo = QuestionOption(question = q2, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
+            q3 = Question(desc='elige representante de tercero de la candidatura "'+ c.nombre+'"')
+            q3.save()
+            i=1
+            for usr in usuarios_candidatura.filter(curso="Third"):
+                qo = QuestionOption(question = q3, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
+            q4 = Question(desc='elige representante de cuarto de la candidatura "'+ c.nombre+'"')
+            q4.save()
+            i=1
+            for usr in usuarios_candidatura.filter(curso="Fourth"):
+                qo = QuestionOption(question = q4, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
+            q5 = Question(desc='elige representante de máster de la candidatura "'+ c.nombre+'"')
+            q5.save()
+            i=1
+            for usr in usuarios_candidatura.filter(curso="Master"):
+                qo = QuestionOption(question = q5, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
+            q6 = Question(desc='elige representante de delegado de centro de la candidatura "'+ c.nombre+'"')
+            q6.save()
+            i=1
+            for usr in usuarios_candidatura:
+                qo = QuestionOption(question = q6, number=i, option=usr.user.first_name+" "+usr.user.last_name+ " / "+str(usr.user.pk))
+                qo.save()
+                i+=1
 
 
-        voting = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
-        , tipo="PV", candiancy=c)
-        voting.save()
-        voting.question.add(q1, q2, q3, q4, q5, q6)
+            voting = Voting(name='Votaciones de la candidatura "'+c.nombre+'"',desc="Elige a los representantes de tu candidatura."
+            , tipo="PV", candiancy=c)
+            voting.save()
+            voting.question.add(q1, q2, q3, q4, q5, q6)
 
-        #No sé si habrá que filtrarlos de alguna manera.
-        for auth in Auth.objects.all():
-            voting.auths.add(auth)
-        messages.add_message(request, messages.SUCCESS, "¡Las elecciones primarias se han creado!")
-
+            #No sé si habrá que filtrarlos de alguna manera.
+            for auth in Auth.objects.all():
+                voting.auths.add(auth)
+            messages.add_message(request, messages.SUCCESS, "¡Las elecciones primarias se han creado!")
 
 realizarEleccionesPrimarias.short_description="Realizar las votaciones primarias de candidaturas seleccionadas"
 
@@ -190,7 +196,6 @@ def realizarEleccionGeneral(ModelAdmin, request, queryset):
             votacion.auths.add(auth)
         messages.add_message(request, messages.SUCCESS, "¡La elección general se ha creado!")
     except Exception as e:
-        print(e)
         # En el caso de que haya alguna candidatura que no ha celebrado primarias, borramos las prunguntas pues no se creara la votacion general
         q1.delete()
         q2.delete()

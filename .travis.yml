@@ -1,24 +1,39 @@
 dist: xenial
 services:
 - postgresql
+sudo: required
 addons:
   postgresql: '9.4'
+  chrome: stable
 before_script:
 - psql -U postgres -c "create user decide password 'decide'"
 - psql -U postgres -c "create database test_decide owner decide"
 - psql -U postgres -c "ALTER USER decide CREATEDB"
+- CHROME_MAIN_VERSION=`google-chrome-stable --version | sed -E 's/(^Google Chrome |\.[0-9]+ )//g'`
+- CHROMEDRIVER_VERSION=`curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAIN_VERSION"`
+- curl "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O
+- unzip chromedriver_linux64.zip -d ~/bin
 language: python
 python:
 - '3.6'
 install:
+- wget https://github.com/mozilla/geckodriver/releases/download/v0.27.0/geckodriver-v0.27.0-linux64.tar.gz
+- tar -xzf geckodriver-v0.27.0-linux64.tar.gz
+- chmod +x geckodriver 
+- sudo cp geckodriver /usr/bin/
 - pip install -r requirements.txt
 - pip install codacy-coverage
 script:
 - cd decide
 - cp travis_local_settings.py local_settings.py
-- coverage run --branch --source=. ./manage.py test --keepdb
+- coverage run --branch --source=. ./manage.py test voting --keepdb
 - coverage xml
 - python-codacy-coverage -r coverage.xml
+after_script:
+- cd decide
+- cp travis_settings.py settings.py
+- cd ..
+
 deploy:
   provider: heroku
   app: guadalfeo-votaciones-prod

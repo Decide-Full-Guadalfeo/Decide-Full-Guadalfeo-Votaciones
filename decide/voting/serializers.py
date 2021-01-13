@@ -14,7 +14,6 @@ class CandidaturaSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Candidatura
         fields = ('nombre',)
-        
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
     options = QuestionOptionSerializer(many=True)
     class Meta:
