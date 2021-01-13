@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
-from django.db.utils import IntegrityError
 from rest_framework.test import APIClient
 from rest_framework.test import APITestCase
 from django.urls import reverse
@@ -311,6 +310,7 @@ class CandidaturaTestCase(BaseTestCase):
         self.assertEqual(q.exists(), True)
         CreadoRepresentanteMaster =QuestionOption.objects.filter(question = q.all()[0], option="representante de master curso").exists()
         self.assertEqual(CreadoRepresentanteMaster, True)
+
 
     def test_create_primary_voting_API_Fail(self):
         """test: falla al crear desde la API porque ya se han hecho las primarias y hay representante."""
