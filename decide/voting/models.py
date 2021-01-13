@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+
 from base import mods
 from base.models import Auth, Key
 from census.models import Census
@@ -39,38 +38,14 @@ class QuestionOption(models.Model):
     def __str__(self):
         return '{} ({})'.format(self.option, self.number)
 
-class Candidatura(models.Model):
-    nombre = models.TextField()
-    delegadoCentro = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='delegado_centro')
-    representanteDelegadoPrimero = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_primero')
-    representanteDelegadoSegundo = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_segundo')
-    representanteDelegadoTercero = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_tercero')
-    representanteDelegadoCuarto = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_cuarto')
-    representanteDelegadoMaster = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE, related_name='representante_master')
-
-    def __str__(self):
-        return self.nombre
-
 
 class Voting(models.Model):
     name = models.CharField(max_length=200)
     desc = models.TextField(blank=True, null=True)
-    question = models.ManyToManyField(Question, related_name='voting')
+    question = models.ForeignKey(Question, related_name='voting', on_delete=models.CASCADE)
 
     start_date = models.DateTimeField(blank=True, null=True)
     end_date = models.DateTimeField(blank=True, null=True)
-
-    PRIMRAY_VOTING = 'PV'
-    GENERAL_VOTING = 'GV'
-
-    TYPES = [
-        (PRIMRAY_VOTING, 'Primary voting'),
-        (GENERAL_VOTING, 'General voting')
-    ]
-
-    tipo = models.TextField(null=False, choices=TYPES, default=PRIMRAY_VOTING)
-
-    candiancy = models.ForeignKey(Candidatura, related_name='voting', blank=True, on_delete=models.CASCADE, null=True)
 
     pub_key = models.OneToOneField(Key, related_name='voting', blank=True, null=True, on_delete=models.SET_NULL)
     auths = models.ManyToManyField(Auth, related_name='votings')
@@ -88,8 +63,6 @@ class Voting(models.Model):
         if(self.tipo=='GV'):
             if(self.candiancy!=None):
                 raise ValidationError('General votings must not have a candidancy')
-
-
     def create_pubkey(self):
         if self.pub_key or not self.auths.count():
             return

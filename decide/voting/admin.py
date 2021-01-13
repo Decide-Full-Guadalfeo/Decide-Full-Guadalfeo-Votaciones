@@ -5,7 +5,7 @@ from .models import QuestionOption
 from base.models import Auth
 from .models import Question
 from .models import Voting
-from .models import Candidatura
+
 from .filters import StartedFilter
 from authentication.models import VotingUser
 import datetime
