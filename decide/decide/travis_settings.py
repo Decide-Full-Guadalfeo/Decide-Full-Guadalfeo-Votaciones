@@ -73,7 +73,7 @@ MODULES = [
     'voting',
 ]
 
-BASEURL = 'https://guadalfeo-votaciones-prod.herokuapp.com/'
+BASEURL = 'https://guadalfeo-votaciones-prod.herokuapp.com'
 
 APIS = {
     'authentication': BASEURL,
