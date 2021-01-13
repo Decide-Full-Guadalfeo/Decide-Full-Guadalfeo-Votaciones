@@ -9,9 +9,11 @@ before_script:
 - psql -U postgres -c "create user decide password 'decide'"
 - psql -U postgres -c "create database test_decide owner decide"
 - psql -U postgres -c "ALTER USER decide CREATEDB"
-- CHROME_MAIN_VERSION=`google-chrome-stable --version | sed -E 's/(^Google Chrome |\.[0-9]+ )//g'`
+- CHROME_MAIN_VERSION=`google-chrome-stable --version | sed -E 's/(^Google Chrome
+  |\.[0-9]+ )//g'`
 - CHROMEDRIVER_VERSION=`curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAIN_VERSION"`
-- curl "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip" -O
+- curl "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
+  -O
 - unzip chromedriver_linux64.zip -d ~/bin
 language: python
 python:
@@ -19,7 +21,7 @@ python:
 install:
 - wget https://github.com/mozilla/geckodriver/releases/download/v0.27.0/geckodriver-v0.27.0-linux64.tar.gz
 - tar -xzf geckodriver-v0.27.0-linux64.tar.gz
-- chmod +x geckodriver 
+- chmod +x geckodriver
 - sudo cp geckodriver /usr/bin/
 - pip install -r requirements.txt
 - pip install codacy-coverage
@@ -33,12 +35,19 @@ after_script:
 - cd decide
 - cp travis_settings.py settings.py
 - cd ..
-
 deploy:
   provider: heroku
   app: guadalfeo-votaciones-prod
   strategy: git
   api_key:
-    secure: pxH6ZSI7tws4Zr9IsLABYm/wFsgFpTHJD96T/w8uiCRy2CoBzbgXgtlr1CDLnBA0PPFpwyPRyQ/3BMbCbc+WvXBbukEGK5UBdpC16CmFSn8su4CFm1iDkwlOvpredrw1rY7ynDAaOgUqTJHJLKyRxVN2u7xLY0RqL8/snRzeJq8mYILnFWgoEyp2Wv8Hfoi8yvbetW9CyUixYgZKXL9VRQdLrKc32l8pD3pb7cvJDJr1AgGwJ+ZsgUQXb9d4cJu6s4RyIXLUq1qvWEkqLc9GsyJcRZMhJJby2t7+EFG6DY5/0pX0UYogwX5G18HjZLGEoDVY2iLtXlAcb0HDU9EEtyvGg/VYpsMqNGaDt1gxIT66NI+oT+zR64ai7tPAvSMf5BUy34SOZ6XcsmMkTFuS+UzObeKBmhwzgK/i9A/ds+b6kYKq6pyCf0NgJQH90KzMR6vHnRip36JeMJl7CiKJb2gX8V3kRVzgVE6Vxok8re7/WDSPavWtmJoBoR6KPcQ6LEjo5gBTMs1gJxQAPvtnrcLWAJdg+Y7vhSJVLSJ11x3LOf+qwFZRA58rFLBwq6sSrdQDOvk1lbk0jPlHb9HY9erAOA0n6S07em7Qx3orGShXkrCu1tGGRD5fQ7fc1+FGr6KAkaVqrkyXGkdsA+NhpzXNIP6Wc5Wu/KehtBAQidI=
+    secure: DDnm7vmw8H+4Mrz2T6BITrjnl0DUULLZz5qsEMkJvaH0sXdIhKsO4ybvD6ZizS1Qlpkxbn3nCQsY0MLghGTd2uIK8/s1PjZ+68A/ouxKCpfyxgCuXMeNEKf7PT1PEpxPI1ApATdBfPZjxTMg8E32Uj+FX1u9YrvV165zEVvbJ0/nNwDQydNjxRlZeBsVjLzZXU0JQJ7gPRafHfSQQfsZnr9erz6uXsVlCtu7yLphd3bCpILJozikzuVcbMu8d85EMnnqvmIsmC5c4EegpzMdCIi+gjEPOVN79oVRjCUtUnzIcuBF2rYrmwFmrLa2WsO+3a5OXPtG823WHQ71QlvKfiGFo3L+FmyQz7cGZBwyey0cPPiMMnEv37Ij3OyU4crEhgr6m0wkAKrITEraS4T99sZImEqdzofY1gvubAs3To+pffeCN9Vg72GsQOA234PEwOGXB3qgjWlQhvLP2Kod8peVBMQUeG3IZts+Hefs8MPg+U+jJJpzXdXNMOituoyqut5UD7f+GeJH2dZzuFDZXkpEhSks4FHE7P4nwHmaj4Fdf0mxoEdscy0xJoGT4w1auMldCl6phhIDNsZWw9gXQx+cdgKxicNridKbShXB9v99b7BpE7QpSkOnH30GfpzEMf/uH1tpGIr7qKecw2IbmsWHzuY5V9hXAKCGbolTaaI=
   on:
     branch: master
+deploy:
+  provider: heroku
+  app: guadalfeo-votaciones-prod
+  strategy: git
+  api_key:
+    secure: DDnm7vmw8H+4Mrz2T6BITrjnl0DUULLZz5qsEMkJvaH0sXdIhKsO4ybvD6ZizS1Qlpkxbn3nCQsY0MLghGTd2uIK8/s1PjZ+68A/ouxKCpfyxgCuXMeNEKf7PT1PEpxPI1ApATdBfPZjxTMg8E32Uj+FX1u9YrvV165zEVvbJ0/nNwDQydNjxRlZeBsVjLzZXU0JQJ7gPRafHfSQQfsZnr9erz6uXsVlCtu7yLphd3bCpILJozikzuVcbMu8d85EMnnqvmIsmC5c4EegpzMdCIi+gjEPOVN79oVRjCUtUnzIcuBF2rYrmwFmrLa2WsO+3a5OXPtG823WHQ71QlvKfiGFo3L+FmyQz7cGZBwyey0cPPiMMnEv37Ij3OyU4crEhgr6m0wkAKrITEraS4T99sZImEqdzofY1gvubAs3To+pffeCN9Vg72GsQOA234PEwOGXB3qgjWlQhvLP2Kod8peVBMQUeG3IZts+Hefs8MPg+U+jJJpzXdXNMOituoyqut5UD7f+GeJH2dZzuFDZXkpEhSks4FHE7P4nwHmaj4Fdf0mxoEdscy0xJoGT4w1auMldCl6phhIDNsZWw9gXQx+cdgKxicNridKbShXB9v99b7BpE7QpSkOnH30GfpzEMf/uH1tpGIr7qKecw2IbmsWHzuY5V9hXAKCGbolTaaI=
+  on:
+    branch: hotfix/1.0.0
