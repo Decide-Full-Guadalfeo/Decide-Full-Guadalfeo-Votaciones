@@ -38,13 +38,7 @@ deploy:
   provider: heroku
   app: guadalfeo-votaciones-prod
   strategy: git
-  api_key: $HEROKU_AUTH_TOKEN
-  on:
-    branch: master
-deploy:
-  provider: heroku
-  app: guadalfeo-votaciones-prod
-  strategy: git
-  api_key: $HEROKU_AUTH_TOKEN
+  api_key:
+    secure: suBv5S2VlDo8FAlLV23Ii3GDpiYaXz9kyXf1C8sKSjN80966U8WT7AnmC7m9tkMAyPqQRlveoCexa3o9nDFyS9nmShIaexUTh/mwSDB5ng0Y+iLTdgHEuXvzCb4KnN4aIOh0LptrjgyptWeSMlzkTGAWyoEG8Vxm6tuV80A0Nl5maBq542eA47Jy11WlWh+ITSzIjU5EJrIWdCjy4wbm7s9F/20jl53BbFIfL+STWkEWr0f3JWjdspeouq7eBR7M/554BWq8EjdZQ1IO/b+Vg2OXEt4RQpnxTpWK3DA1x8F73CaQL3OHq6sdTGWM7g4SP3x0mMX0WC1JVfTmX/oeRwBi73JwkvC/Hr7RKnXcO64Y1ILlviMXNsqTxnDWvCgfJg6KMLkup7pbMOcBquIqf9xZKs2iYLpJOPixy8kW0lRMnvEib6HKG2meNDEd1I3dHTr2UO0elLGFv8+avldRWnruKTn/RQX3D0iQqZ6ToesPE5JdlO86oNAXHGgFVcD8eGUBuHkliHSWx6dbpLzJvAA9n9pb4mp2Wjj/G9RcqLf1At0tOsNxd+lDHs9b7iYCDL5YzJmpkdegWTw9QNmJDOoS54HKwQRy4w607iijrIuG6+QNDicetsl6PsKZ1c25e0wPf2APTsTRABBEngnQdetgbcXnLZ3QP0a7wnYt3Mc=
   on:
     branch: hotfix/1.0.0
