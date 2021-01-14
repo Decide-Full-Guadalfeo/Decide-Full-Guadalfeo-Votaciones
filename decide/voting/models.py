@@ -219,6 +219,10 @@ class Voting(models.Model):
             numero_candidatos= options.count()
             if "delegación de alumnos" in titulo or "delegado al centro" in titulo or "delegado de centro" in titulo:
                 aux = True
+                if "delegación de alumnos" in titulo:
+                    indice_preg = 6
+                else:
+                    indice_preg = 0
             for opt in options:
                 voto_curso= []
                 if isinstance(tally, list):
@@ -248,13 +252,13 @@ class Voting(models.Model):
                         n_votos_tercero = 0
                         n_votos_cuarto = 0
                         n_votos_master = 0
-                    voto_curso.append({
+                    voto_curso = {
                     'primero': n_votos_primero,
                     'segundo': n_votos_segundo,
                     'tercero': n_votos_tercero,
                     'cuarto': n_votos_cuarto,
                     'master': n_votos_master
-                    })
+                    }
                     opts.append({
                     'nombre': opt.option,
                     'numero': opt.number,
@@ -277,6 +281,7 @@ class Voting(models.Model):
             if aux:
                 preguntas.append({
                 'titulo': titulo,
+                'indice_preg': indice_preg,
                 'numero_candidatos': numero_candidatos,
                 'opts': sorted(opts,key = lambda i: i['votes'],reverse=True)
                 })
@@ -285,6 +290,7 @@ class Voting(models.Model):
                     n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').count()
                     nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').filter(sexo='Man').count()
                     nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='First').filter(sexo='Woman').count()
+                    indice_preg = 1
                     if isinstance(tally, list):
                         lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='First']
                         n_votantes_pregunta = len(lvotos_pregunta)
@@ -303,6 +309,7 @@ class Voting(models.Model):
                     n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').count()
                     nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').filter(sexo='Man').count()
                     nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Second').filter(sexo='Woman').count()
+                    indice_preg = 2
                     if isinstance(tally, list):
                         lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Second']
                         n_votantes_pregunta = len(lvotos_pregunta)
@@ -321,6 +328,7 @@ class Voting(models.Model):
                     n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').count()
                     nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').filter(sexo='Man').count()
                     nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Third').filter(sexo='Woman').count()
+                    indice_preg = 3
                     if isinstance(tally, list):
                         lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Third']
                         n_votantes_pregunta = len(lvotos_pregunta)
@@ -339,6 +347,7 @@ class Voting(models.Model):
                     n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').count()
                     nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').filter(sexo='Man').count()
                     nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Fourth').filter(sexo='Woman').count()
+                    indice_preg = 4
                     if isinstance(tally, list):
                         lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Fourth']
                         n_votantes_pregunta = len(lvotos_pregunta)
@@ -357,6 +366,7 @@ class Voting(models.Model):
                     n_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').count()
                     nh_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').filter(sexo='Man').count()
                     nm_censo_pregunta = VotingUser.objects.filter(user__in=censados).filter(curso='Master').filter(sexo='Woman').count()
+                    indice_preg = 5
                     if isinstance(tally, list):
                         lvotos_pregunta= [vote for vote in tally if titulo in vote and vote['year']=='Master']
                         n_votantes_pregunta = len(lvotos_pregunta)
@@ -373,6 +383,7 @@ class Voting(models.Model):
                         media_edad_votantes_pregunta = 0
                 preguntas.append({
                 'titulo': titulo,
+                'indice_preg': indice_preg,
                 'numero_candidatos': numero_candidatos,
                 'n_personas_censo': n_censo_pregunta,
                 'n_votantes': n_votantes_pregunta,
@@ -418,6 +429,6 @@ class Voting(models.Model):
 
         self.postproc = postp
         self.save()
-
+        
     def __str__(self):
         return self.name
