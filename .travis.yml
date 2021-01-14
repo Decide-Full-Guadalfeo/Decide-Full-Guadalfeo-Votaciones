@@ -40,4 +40,4 @@ deploy:
   strategy: git
   api_key: $HEROKU_AUTH_TOKEN
   on:
-    branch: hotfix/1.0.0
+    branch: master
