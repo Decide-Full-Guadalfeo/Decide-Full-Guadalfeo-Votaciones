@@ -225,8 +225,18 @@ class Voting(models.Model):
                     indice_preg = 0
             for opt in options:
                 voto_curso= []
+                lvotos_opcion = []
                 if isinstance(tally, list):
-                        lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
+                    for vote in tally:
+                        if titulo in vote and isinstance(vote[titulo], list):
+                            for vt in vote[titulo]:
+                                if vt == opt.number:
+                                    d = vote.copy()
+                                    d[titulo] = vt
+                                    lvotos_opcion.append(d)
+                        else:
+                            lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
+                        # votes = nº votos para una opcion --> aunque sea de opcion multiple sigue siendo 1 voto?
                         votes =len(lvotos_opcion)
                         n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'Man'])
                         n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'Woman'])
@@ -392,9 +402,10 @@ class Voting(models.Model):
                 'n_mujeres_censo': nm_censo_pregunta,
                 'n_votantes_f': n_votantes_f_pregunta,
                 'media_edad_votantes': media_edad_votantes_pregunta,
-                'opts': sorted(opts,key = lambda i: i['votes'],reverse=True)
+                'opts': sorted(opts,key = lambda i: i['votes'], reverse=True)
                 })
             if primaria:
+                opts = sorted(opts,key = lambda i: i['votes'], reverse=True)
                 ganador=re.search('\d+',opts[0]['nombre'])
                 if ganador:
                     id_ganador=ganador.group(0)
