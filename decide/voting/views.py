@@ -290,8 +290,8 @@ class CandidaturaUpdate(generics.RetrieveUpdateDestroyAPIView):
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     permission_classes = (IsAdminUser,)
 
-    def put(self, request, candidatura_id, *args, **kwargs):
-        candidatura = Candidatura.objects.get(pk=candidatura_id)
+    def put(self, request, pk, *args, **kwargs):
+        candidatura = Candidatura.objects.get(pk=pk)
         for data in ['nombre']:
             if not data in request.data:
                 return Response({}, status=status.HTTP_400_BAD_REQUEST)
@@ -299,8 +299,8 @@ class CandidaturaUpdate(generics.RetrieveUpdateDestroyAPIView):
         candidatura.save()
         return Response({}, status=status.HTTP_200_OK)
     
-    def delete(self, request, candidatura_id, *args, **kwargs):
-        candidatura = Candidatura.objects.get(pk=candidatura_id)
+    def delete(self, request, pk, *args, **kwargs):
+        candidatura = Candidatura.objects.get(pk=pk)
         candidatura.delete()
         return Response({}, status=status.HTTP_200_OK)
 
