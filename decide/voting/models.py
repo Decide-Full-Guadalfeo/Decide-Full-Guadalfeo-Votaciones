@@ -115,7 +115,6 @@ class Voting(models.Model):
         """
         The tally is a shuffle and then a decrypt
         """
-
         votes = self.get_votes(token)
         auth = self.auths.first()
         shuffle_url = "/shuffle/{}/".format(self.id)
@@ -127,46 +126,64 @@ class Voting(models.Model):
             # Hacemos una copia para modificarla
             aux = vt.copy()
             for i in aux:
-                a = int(aux[i]['a'])
-                b = int(aux[i]['b'])
-                #  decrypt 
-                data = {"msgs": [[a,b]]}
-                response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
-                        response=True)
-                aux[i] = response.json()[0]
-                if response.status_code != 200:
-                    # TODO: manage error
-                    pass
-                resp = response.json()[0]
-                if i=='sex':
-                    if resp == 1:
-                        aux[i]='Man'
-                    if resp == 2:
-                        aux[i]='Woman'
-                    if resp == 3:
-                        aux[i]='Other'
-                elif i=='grade':
-                    if resp == 1:
-                        aux[i]='Software'
-                    if resp == 2:
-                        aux[i]='Computer Technology'
-                    if resp == 3:
-                        aux[i]='Information Technology'
-                    if resp == 4:
-                        aux[i]='Health'
-                elif i=='year':
-                    if resp == 1:
-                        aux[i]='First'
-                    if resp == 2:
-                        aux[i]='Second'
-                    if resp == 3:
-                        aux[i]='Third'
-                    if resp == 4:
-                        aux[i]='Fourth'
-                    if resp == 5:
-                        aux[i]='Master'
+                # Vemos si es la pregunta de seleccion multiple
+                if isinstance(aux[i], list):
+                    resps = []
+                    for l in aux[i]:
+                        a = int(l['a'])
+                        b = int(l['b'])
+                        #  decrypt 
+                        data = {"msgs": [[a,b]]}
+                        response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
+                                response=True)
+                        if response.status_code != 200:
+                            # TODO: manage error
+                            pass
+                        resp = response.json()[0]
+                        resps.append(resp)
+                        # Lo ponemos de vuelta en el diccionario desencriptado
+                        aux[i] = resps
                 else:
-                    aux[i] = resp
+                    a = int(aux[i]['a'])
+                    b = int(aux[i]['b'])
+                    #  decrypt 
+                    data = {"msgs": [[a,b]]}
+                    response = mods.post('mixnet', entry_point=decrypt_url, baseurl=auth.url, json=data,
+                            response=True)
+                    aux[i] = response.json()[0]
+                    if response.status_code != 200:
+                        # TODO: manage error
+                        pass
+                    resp = response.json()[0]
+                    if i=='sex':
+                        if resp == 1:
+                            aux[i]='Man'
+                        if resp == 2:
+                            aux[i]='Woman'
+                        if resp == 3:
+                            aux[i]='Other'
+                    elif i=='grade':
+                        if resp == 1:
+                            aux[i]='Software'
+                        if resp == 2:
+                            aux[i]='Computer Technology'
+                        if resp == 3:
+                            aux[i]='Information Technology'
+                        if resp == 4:
+                            aux[i]='Health'
+                    elif i=='year':
+                        if resp == 1:
+                            aux[i]='First'
+                        if resp == 2:
+                            aux[i]='Second'
+                        if resp == 3:
+                            aux[i]='Third'
+                        if resp == 4:
+                            aux[i]='Fourth'
+                        if resp == 5:
+                            aux[i]='Master'
+                    else:
+                        aux[i] = resp
                 
             res.append(aux)
         self.tally = res
@@ -225,8 +242,18 @@ class Voting(models.Model):
                     indice_preg = 0
             for opt in options:
                 voto_curso= []
+                lvotos_opcion = []
                 if isinstance(tally, list):
-                        lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
+                    for vote in tally:
+                        if titulo in vote and isinstance(vote[titulo], list):
+                            for vt in vote[titulo]:
+                                if vt == opt.number:
+                                    d = vote.copy()
+                                    d[titulo] = vt
+                                    lvotos_opcion.append(d)
+                        else:
+                            lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
+                        # votes = nº votos para una opcion --> aunque sea de opcion multiple sigue siendo 1 voto?
                         votes =len(lvotos_opcion)
                         n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'Man'])
                         n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'Woman'])
@@ -392,9 +419,10 @@ class Voting(models.Model):
                 'n_mujeres_censo': nm_censo_pregunta,
                 'n_votantes_f': n_votantes_f_pregunta,
                 'media_edad_votantes': media_edad_votantes_pregunta,
-                'opts': sorted(opts,key = lambda i: i['votes'],reverse=True)
+                'opts': sorted(opts,key = lambda i: i['votes'], reverse=True)
                 })
             if primaria:
+                opts = sorted(opts,key = lambda i: i['votes'], reverse=True)
                 ganador=re.search('\d+',opts[0]['nombre'])
                 if ganador:
                     id_ganador=ganador.group(0)

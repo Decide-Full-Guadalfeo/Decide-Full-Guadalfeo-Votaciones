@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 
@@ -8,5 +8,5 @@ urlpatterns = [
     path('candidaturaprimaria/<int:candidatura_id>/', views.CandidaturaPrimaria.as_view(), name='candidaturaprimaria'),
     path('candidatura/', views.CandidaturaView.as_view(), name='candidatura'),
     path('general/', views.GeneralVoting.as_view(), name="generalVoting"),
-    path('^candidatura/(?P<pk>\d+)/$', views.CandidaturaUpdate.as_view(), name='candidatura'),
+    re_path(r'^candidatura/(?P<pk>\d+)/$', views.CandidaturaUpdate.as_view(), name='candidatura'),
 ]
