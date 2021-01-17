@@ -253,14 +253,13 @@ class Voting(models.Model):
                                     lvotos_opcion.append(d)
                         else:
                             lvotos_opcion= [vote for vote in tally if titulo in vote and int(vote[titulo])==opt.number]
-                        # votes = nº votos para una opcion --> aunque sea de opcion multiple sigue siendo 1 voto?
-                        votes =len(lvotos_opcion)
-                        n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'Man'])
-                        n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'Woman'])
-                        if votes==0:
-                            media_edad_votantes_opcion=0.0
-                        else:
-                            media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
+                    votes =len(lvotos_opcion)
+                    n_votantes_m_opcion = len([i for i in lvotos_opcion if i['sex']== 'Man'])
+                    n_votantes_f_opcion = len([i for i in lvotos_opcion if i['sex']== 'Woman'])
+                    if votes==0:
+                        media_edad_votantes_opcion=0.0
+                    else:
+                        media_edad_votantes_opcion = float(sum(i['age'] for i in lvotos_opcion)/votes)
                 else:
                         votes = 0
                         n_votantes_m_opcion = 0
