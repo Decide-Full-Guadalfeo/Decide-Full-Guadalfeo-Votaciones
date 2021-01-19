@@ -42,7 +42,7 @@ def checkVotingQuestionOptions(v):
 def start(modeladmin, request, queryset):
     for v in queryset.all():
         if isinstance(v.start_date,datetime.datetime):
-            messages.add_message(request, messages.ERROR, v.name+" already started.")
+            messages.add_message(request, messages.ERROR, v.name+" ya está empezada.")
         elif v.tipo=='PV' and Question.objects.filter(voting=v).count()!=6:
             messages.add_message(request, messages.ERROR, "La votación primaria "+v.name+" debe tener 6 preguntas, 1 para cada curso y otra para el delegado de centro.")
         elif v.tipo=='PV' and checkVotingQuestionNames(v, PRIMARY_QUESTIONS)==False:
@@ -62,7 +62,7 @@ def start(modeladmin, request, queryset):
 def stop(ModelAdmin, request, queryset):
     for v in queryset.all():
         if isinstance(v.end_date,datetime.datetime):
-            messages.add_message(request, messages.ERROR, v.name+" already stopped.")
+            messages.add_message(request, messages.ERROR, v.name+" ya se ha parado.")
         else:
             if isinstance(v.start_date,datetime.datetime):
                 v.end_date = timezone.now()
