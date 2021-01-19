@@ -243,7 +243,7 @@ class QuestionAdmin(admin.ModelAdmin):
             if i==0:
                 o.delete()
             else:
-                messages.add_message(request, messages.ERROR, "A question from a voting that has started cannot be deleted.")
+                messages.add_message(request, messages.ERROR, "Una pregunta de una votación que ha comenzado no se puede borrar")
 
 class CandidaturaAdmin(admin.ModelAdmin):
     actions = [ realizarEleccionesPrimarias , borrarVotingPrimary, realizarEleccionGeneral]
