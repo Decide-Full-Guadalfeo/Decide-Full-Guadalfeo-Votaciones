@@ -2215,7 +2215,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         dropdown.find_element(By.XPATH, "//option[. = 'Start']").click()
         self.driver.find_element(By.NAME, "action").click()
         self.driver.find_element(By.NAME, "index").click()
-        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 already started."
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 ya está empezada."
         self.driver.find_element(By.NAME, "_selected_action").click()
         dropdown = self.driver.find_element(By.NAME, "action")
         dropdown.find_element(By.XPATH, "//option[. = 'Stop']").click()
@@ -2227,7 +2227,7 @@ class GeneralVotingTestCase(StaticLiveServerTestCase):
         dropdown.find_element(By.XPATH, "//option[. = 'Stop']").click()
         self.driver.find_element(By.NAME, "action").click()
         self.driver.find_element(By.NAME, "index").click()
-        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 already stopped."
+        assert self.driver.find_element(By.CSS_SELECTOR, ".error").text == "Votación general 1 ya se ha parado."
 
     def test_update_voting_started(self):
         self.crear_votacion()
